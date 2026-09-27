@@ -1,0 +1,794 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Playfair+Display:wght@300;400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Inter', system-ui, sans-serif;
+  --font-montserrat: 'Montserrat', sans-serif;
+
+  --color-brand-50: #ede9fe;
+  --color-brand-100: #ddd6fe;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+
+  --color-surface-900: #0f0e17;
+  --color-surface-800: #1a1826;
+  --color-surface-700: #221f33;
+  --color-surface-600: #2d2a42;
+}
+
+:root {
+  --color-fondo: #1C1917;
+  --color-primario: #7c3aed;
+  --color-apoyo: #06b6d4;
+
+  /* Modo Oscuro: Jerarquía visual de profundidad (Alternancia Estricta Tono 1 y Tono 2)
+     - Tono 2 (Hundido / El más oscuro): Fondo base (<body>), Contenedores Agrupadores (Nivel 2)
+     - Tono 1 (Elevado / Gris más claro): Tarjetas Principales (Nivel 1), Inputs y Campos (Nivel 3)
+  */
+  --bg-page-body: var(--theme-subcard-bg, var(--theme-bg));
+  --bg-sidebar: var(--theme-surface);
+  --bg-topbar: var(--theme-surface);
+  --bg-card: var(--theme-surface);
+  --bg-modal: var(--theme-surface);
+  --bg-dropdown: var(--theme-surface);
+  --bg-input: var(--theme-surface);
+  --border-subtle: var(--theme-border-subtle, rgba(255, 255, 255, 0.16));
+
+  --text-main: #F1F5F9;
+  --text-muted: rgba(241, 245, 249, 0.6);
+  --text-subtle: rgba(241, 245, 249, 0.4);
+
+  --color-brand-600: var(--color-primario);
+  --color-brand-500: var(--color-primario);
+  --color-brand-400: var(--color-primario);
+}
+
+/* Modo Claro: misma estructura de profundidad que oscuro, oscureciendo ligeramente el color claro elegido */
+/* Modo Claro: estructura limpia ligada a las variables del ThemeContext */
+html.theme-light {
+  --bg-page-body: var(--theme-subcard-bg, var(--theme-bg, #E9EAF2));
+  --bg-sidebar: var(--theme-surface, #FFFFFF);
+  --bg-topbar: var(--theme-primary);
+  --bg-card: var(--theme-surface, #FFFFFF);
+  --bg-modal: var(--theme-surface, #FFFFFF);
+  --bg-dropdown: var(--theme-surface, #FFFFFF);
+  --bg-input: var(--theme-input, #FFFFFF);
+  --border-subtle: var(--theme-border-subtle, #C5CBD5);
+
+  --text-main: #020617;
+  --text-muted: #1E293B;
+  --text-subtle: #334155;
+}
+
+.border-theme-border-subtle,
+.border-subtle {
+  border-color: var(--theme-border-subtle, #C5CBD5) !important;
+}
+
+html, body {
+  background-color: var(--theme-subcard-bg, var(--theme-bg, #121212));
+  box-shadow: none !important;
+  color: var(--theme-text, #020617);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Sombras en contenedores principales y subcontenedores */
+.bg-theme-bg {
+  background-color: var(--theme-subcard-bg, var(--theme-bg)) !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.bg-theme-surface {
+  background-color: var(--theme-surface) !important;
+  box-shadow: var(--theme-shadow-card);
+  border: 1px solid var(--theme-border-subtle);
+}
+
+html.theme-light .bg-theme-surface {
+  background-color: var(--theme-surface) !important;
+  box-shadow: var(--theme-shadow-card);
+  border: 1px solid var(--theme-border-subtle);
+}
+
+.bg-theme-card {
+  background-color: var(--theme-card) !important;
+  box-shadow: var(--theme-shadow-card);
+  border: 1px solid var(--theme-border-subtle);
+}
+
+.text-theme-text {
+  color: var(--theme-text) !important;
+}
+
+.text-theme-text-muted {
+  color: var(--theme-text-muted) !important;
+}
+
+.text-theme-text-subtle {
+  color: var(--theme-text-subtle) !important;
+}
+
+.bg-theme-input {
+  background-color: var(--theme-input);
+  border: 1px solid var(--theme-border-subtle);
+}
+
+/* Sombras suaves y bordes en inputs, selects y textareas: Tono 2 (Hundido) por defecto en modo oscuro */
+input[type="text"]:not(.bg-transparent):not(.caracteristica-line-input):not(.input-surface),
+input[type="email"]:not(.bg-transparent):not(.input-surface),
+input[type="tel"]:not(.bg-transparent):not(.input-surface),
+input[type="password"]:not(.bg-transparent):not(.input-surface),
+input[type="number"]:not(.bg-transparent):not(.input-surface),
+input[type="search"]:not(.bg-transparent):not(.input-surface),
+input[type="text"]:not(.bg-transparent):not(.caracteristica-line-input):not(.input-surface):not(.input-subcard),
+input[type="email"]:not(.bg-transparent):not(.input-surface):not(.input-subcard),
+input[type="tel"]:not(.bg-transparent):not(.input-surface):not(.input-subcard),
+input[type="password"]:not(.bg-transparent):not(.input-surface):not(.input-subcard),
+input[type="number"]:not(.bg-transparent):not(.input-surface):not(.input-subcard),
+input[type="search"]:not(.bg-transparent):not(.input-surface):not(.input-subcard),
+input[type="url"]:not(.bg-transparent):not(.input-surface):not(.input-subcard),
+select:not(.bg-transparent):not(.input-surface):not(.input-subcard),
+textarea:not(.bg-transparent):not(.input-surface):not(.input-subcard) {
+  background-color: var(--theme-subcard-bg, #121212) !important;
+  color: var(--theme-text, #F1F5F9) !important;
+  border: 1px solid var(--theme-border-subtle, rgba(255, 255, 255, 0.08)) !important;
+}
+
+html.theme-light input[type="text"]:not(.bg-transparent):not(.caracteristica-line-input):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light input[type="email"]:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light input[type="tel"]:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light input[type="password"]:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light input[type="number"]:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light input[type="search"]:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light input[type="url"]:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light select:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50),
+html.theme-light textarea:not(.bg-transparent):not(.input-subcard):not(.bg-slate-100):not(.bg-gray-100):not(.bg-gray-50) {
+  background-color: #FFFFFF !important;
+  color: #020617 !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Mantener el fondo limpio (Tono 1 / Blanco) al seleccionar o hacer foco en los inputs en modo claro */
+html.theme-light input:not(.bg-transparent):not(.input-subcard):focus,
+html.theme-light textarea:not(.bg-transparent):not(.input-subcard):focus,
+html.theme-light select:not(.bg-transparent):not(.input-subcard):focus {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #020617 !important;
+}
+
+/* CUARTOS CONTENEDORES / INPUTS NIVEL 4: Tono 2 (Gris #E9EAF2 en light, subcard-bg en dark) */
+.input-subcard {
+  background-color: var(--theme-subcard-bg, #131110) !important;
+  background: var(--theme-subcard-bg, #131110) !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-border-subtle) !important;
+}
+
+html.theme-light .input-subcard {
+  background-color: var(--theme-subcard-bg, #E9EAF2) !important;
+  background: var(--theme-subcard-bg, #E9EAF2) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* TERCEROS CONTENEDORES / INPUTS NIVEL 3: Tono 1 (Gris más claro / var(--theme-surface)) */
+.input-surface {
+  background-color: var(--theme-surface) !important;
+  background: var(--theme-surface) !important;
+  color: var(--theme-text) !important;
+  border: 1.5px solid var(--theme-border-subtle);
+}
+
+html.theme-light .input-surface {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #020617 !important;
+  border: 1.5px solid var(--theme-border-subtle, #C5CBD5);
+}
+
+.input-surface:focus {
+  background-color: var(--theme-surface) !important;
+  background: var(--theme-surface) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 1px var(--theme-primary), 0 2px 8px -1px color-mix(in srgb, var(--theme-primary) 20%, transparent) !important;
+}
+
+html.theme-light .input-surface:focus {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+}
+
+html.theme-light input::placeholder,
+html.theme-light textarea::placeholder {
+  color: #475569 !important;
+}
+
+/* Alta legibilidad con negro profundo para textos secundarios y labels en modo claro */
+html.theme-light .text-theme-text-muted,
+html.theme-light .text-slate-400,
+html.theme-light .text-gray-400,
+html.theme-light .text-zinc-400,
+html.theme-light .text-slate-500,
+html.theme-light .text-gray-500 {
+  color: #1E293B !important;
+}
+
+html.theme-light label {
+  color: #020617 !important;
+  font-weight: 700;
+}
+
+/* Legibilidad ultra-nítida con texto en negro profundo y mayor grosor para tablas en modo claro */
+html.theme-light table th {
+  color: #020617 !important;
+  font-weight: 800 !important;
+}
+
+html.theme-light table td {
+  color: #020617 !important;
+}
+
+/* Hover en enlaces del sidebar usando el color primario del sistema */
+.sidebar-nav-link:hover {
+  background-color: color-mix(in srgb, var(--theme-primary) 14%, transparent) !important;
+  color: var(--theme-primary) !important;
+}
+
+/* Texto e íconos dinámicos en botones primarios según contraste (GLOBAL PARA TODAS LAS VISTAS) */
+.bg-brand-600,
+.bg-brand-500,
+.btn-primary,
+.bg-theme-primary,
+.from-brand-600,
+.to-brand-500,
+.from-brand-500,
+button[class*="bg-brand"],
+button[class*="from-brand"],
+button[style*="background: var(--theme-primary)"]:not(.dropdown-opt),
+button[style*="background: var(--color-primario)"]:not(.dropdown-opt),
+button[style*="background-color: var(--color-primario)"]:not(.dropdown-opt),
+button[style*="background-color: var(--theme-primary)"]:not(.dropdown-opt) {
+  color: var(--theme-primary-contrast, #ffffff) !important;
+}
+
+.bg-brand-600 *,
+.bg-brand-500 *,
+.btn-primary *,
+.bg-theme-primary *,
+.from-brand-600 *,
+.to-brand-500 *,
+.from-brand-500 *,
+button[class*="bg-brand"] *,
+button[class*="from-brand"] *,
+button[style*="background: var(--theme-primary)"]:not(.dropdown-opt) *,
+button[style*="background: var(--color-primario)"]:not(.dropdown-opt) *,
+button[style*="background-color: var(--color-primario)"]:not(.dropdown-opt) *,
+button[style*="background-color: var(--theme-primary)"]:not(.dropdown-opt) * {
+  color: var(--theme-primary-contrast, #ffffff) !important;
+  stroke: var(--theme-primary-contrast, #ffffff) !important;
+}
+
+/* EFECTO HOVER Y FOCUS ULTRA-PREMIUM (APLICADO AL CONTENEDOR DEL CAMPO, NO AL TEXTO TRANSPARENTE INTERNO) */
+
+/* 1. Inputs independientes (no transparentes), selects y textareas */
+input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent):not(.caracteristica-line-input),
+select:not(.bg-transparent),
+textarea:not(.bg-transparent) {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent):not(.caracteristica-line-input):hover,
+select:not(.bg-transparent):hover,
+textarea:not(.bg-transparent):hover {
+  transform: translateY(-1.5px) !important;
+  border-color: color-mix(in srgb, var(--theme-primary) 35%, transparent) !important;
+  box-shadow: 0 10px 22px -4px color-mix(in srgb, var(--theme-primary) 30%, transparent), 0 4px 8px -2px color-mix(in srgb, var(--theme-primary) 20%, transparent) !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent):not(.caracteristica-line-input):focus,
+select:not(.bg-transparent):focus,
+textarea:not(.bg-transparent):focus {
+  transform: translateY(-1.5px) !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--theme-primary) 40%, transparent), 0 4px 10px -2px color-mix(in srgb, var(--theme-primary) 25%, transparent) !important;
+  outline: none !important;
+}
+
+/* 2. Inputs tipo línea / transparentes: Sin sombra de contenedor, solo resaltar la línea inferior con el color primario */
+input.bg-transparent,
+textarea.bg-transparent {
+  box-shadow: none !important;
+  transform: none !important;
+  transition: border-color 0.2s ease !important;
+}
+
+input.bg-transparent:hover,
+input.bg-transparent:focus,
+input.bg-transparent:focus-visible,
+textarea.bg-transparent:hover,
+textarea.bg-transparent:focus,
+textarea.bg-transparent:focus-visible {
+  border-bottom-color: var(--theme-primary) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  outline: none !important;
+}
+
+/* 3. Inputs tipo línea continua (sombra aplicada a la barra de línea, texto 100% nítido, sin caja) */
+.no-box-hover,
+.no-box-hover:hover,
+.no-box-hover:focus-within,
+.caracteristica-line-wrap,
+.caracteristica-line-wrap:hover,
+.caracteristica-line-wrap:focus-within {
+  box-shadow: none !important;
+  transform: none !important;
+  border: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.caracteristica-line-input,
+.caracteristica-line-input:hover,
+.caracteristica-line-input:focus,
+.caracteristica-line-input:focus-visible,
+.caracteristica-line-input:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+  transform: none !important;
+}
+
+.caracteristica-underline {
+  height: 1.5px;
+  width: 100%;
+  background-color: var(--theme-border, rgba(128, 128, 128, 0.4));
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, height 0.2s ease;
+  pointer-events: none;
+}
+
+/* 4. Botón Selector de Íconos / Emojis con borde sutil y sombra del color primario al pasar el cursor o seleccionarlo */
+.icon-picker-btn {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  border: 1px solid var(--theme-border, rgba(128, 128, 128, 0.3));
+  border-radius: 0.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.icon-picker-btn:hover,
+.icon-picker-btn.is-active,
+.icon-picker-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--theme-primary) 70%, transparent) !important;
+  box-shadow: 0 3px 12px -2px color-mix(in srgb, var(--theme-primary) 25%, transparent) !important;
+}
+
+.caracteristica-line-wrap:hover .caracteristica-underline {
+  background-color: var(--theme-primary);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--theme-primary) 50%, transparent);
+}
+
+.caracteristica-line-wrap:focus-within .caracteristica-underline {
+  height: 2px;
+  background-color: var(--theme-primary);
+  box-shadow: 0 3px 10px 1px color-mix(in srgb, var(--theme-primary) 65%, transparent);
+}
+
+/* EFECTO HOVER Y APROXIMACIÓN ULTRA-FLUIDA EN TARJETAS (ZOOM PROXIMIDAD PROGRESIVO Y SEDOSO) */
+.card-primary-hover {
+  will-change: transform, box-shadow, border-color;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition: transform 0.38s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.38s cubic-bezier(0.25, 1, 0.5, 1), 
+              border-color 0.38s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+.card-primary-hover:hover {
+  transform: translate3d(0, -3.5px, 0) scale(1.014) !important;
+  box-shadow: 0 14px 30px -4px color-mix(in srgb, var(--theme-primary) 30%, transparent),
+              0 4px 12px -2px color-mix(in srgb, var(--theme-primary) 16%, transparent) !important;
+  border-color: color-mix(in srgb, var(--theme-primary) 35%, transparent) !important;
+}
+
+/* Transición ultra-suave para imágenes dentro de tarjetas */
+.card-primary-hover img,
+.group img {
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.card-primary-hover:hover img,
+.group:hover img {
+  transform: scale(1.035) !important;
+}
+
+/* Elementos deshabilitados menos invisibles */
+[disabled], .disabled, *:disabled, [aria-disabled="true"] {
+  opacity: 0.6 !important;
+}
+
+/* Toggles deshabilitados / inactivos con sombra visible */
+.toggle-inactive {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+}
+
+.subcontainer-card {
+  background-color: var(--theme-subcard-bg);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+@keyframes aurora {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.resumen-inteligente-bg {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-primary) 15%, transparent),
+    color-mix(in srgb, var(--theme-primary) 5%, transparent),
+    color-mix(in srgb, var(--theme-primary) 25%, transparent),
+    color-mix(in srgb, var(--theme-primary) 8%, transparent)
+  );
+  background-size: 300% 300%;
+  animation: aurora 6s ease infinite;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Ultra-smooth floating wave for AURUM letters — pure CSS for 60fps */
+@keyframes aurumFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+.aurum-float {
+  animation: aurumFloat 3.5s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  will-change: transform;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fadeInUp  { animation: fadeInUp 0.4s ease both; }
+.animate-fadeIn    { animation: fadeIn 0.3s ease both; }
+.animate-shimmer {
+  background: linear-gradient(
+    90deg, 
+    var(--theme-card, #E5EBF2) 25%, 
+    color-mix(in srgb, var(--theme-card, #E5EBF2) 75%, var(--theme-text, #020617) 25%) 50%, 
+    var(--theme-card, #E5EBF2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Delays escalonados para listas */
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.10s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.20s; }
+.delay-5 { animation-delay: 0.25s; }
+
+
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.05); }
+}
+.animate-glowPulse { animation: glowPulse 3s ease-in-out infinite; }
+
+@keyframes borderGlow {
+  0%, 100% { box-shadow: 0 0 0px #7c3aed00; }
+  50%       { box-shadow: 0 0 20px #7c3aed33, 0 0 40px #7c3aed11; }
+}
+.animate-borderGlow { animation: borderGlow 3s ease-in-out infinite; }
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slideInRight { animation: slideInRight 0.3s ease both; }
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-scaleIn { animation: scaleIn 0.2s ease both; }
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-countUp { animation: countUp 0.5s ease both; }
+
+/* --- ANIMACIÓN DE CONTORNO DE FUEGO ESTÁTICO PREMIUM --- */
+@keyframes fireRotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.fire-glow {
+  background: linear-gradient(
+    135deg,
+    #ef4444,
+    #f97316,
+    #f59e0b,
+    #facc15,
+    #f97316,
+    #ef4444
+  );
+  background-size: 300% 300%;
+  animation: fireRotate 5s linear infinite;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.35), 
+              0 0 25px rgba(239, 68, 68, 0.18), 
+              0 0 35px rgba(245, 158, 11, 0.08);
+}
+
+/* --- ESTILADO GLOBAL DE SCROLLBARS --- */
+* {
+  scrollbar-width: none !important;
+}
+
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-button {
+  display: none !important;
+  background: transparent !important;
+}
+
+/* Forzar que el contenedor principal use scrollbar invisible */
+main {
+  overflow-y: auto !important;
+}
+
+/* Clase de utilidad para ocultar barras de desplazamiento por completo */
+.scrollbar-none {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Estilo premium y tema oscuro para inputs de fecha nativos */
+input[type="date"] {
+  color-scheme: dark !important;
+}
+input[type="date"].date-input-empty {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+input[type="date"].date-input-empty::-webkit-datetime-edit,
+input[type="date"].date-input-empty::-webkit-datetime-edit-fields-wrapper,
+input[type="date"].date-input-empty::-webkit-datetime-edit-text,
+input[type="date"].date-input-empty::-webkit-datetime-edit-month-field,
+input[type="date"].date-input-empty::-webkit-datetime-edit-day-field,
+input[type="date"].date-input-empty::-webkit-datetime-edit-year-field {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+input[type="date"].date-input-filled {
+  color: #ffffff !important;
+}
+input[type="date"].date-input-filled::-webkit-datetime-edit,
+input[type="date"].date-input-filled::-webkit-datetime-edit-fields-wrapper,
+input[type="date"].date-input-filled::-webkit-datetime-edit-text,
+input[type="date"].date-input-filled::-webkit-datetime-edit-month-field,
+input[type="date"].date-input-filled::-webkit-datetime-edit-day-field,
+input[type="date"].date-input-filled::-webkit-datetime-edit-year-field {
+  color: #ffffff !important;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.8) sepia(50%) saturate(1000%) hue-rotate(220deg); /* Tinte púrpura sutil de marca */
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* Remover por completo el fondo azul nativo de selección/enfoque en segmentos de fecha nativos */
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-year-field:focus,
+input[type="date"]::-webkit-datetime-edit-day-field:active,
+input[type="date"]::-webkit-datetime-edit-month-field:active,
+input[type="date"]::-webkit-datetime-edit-year-field:active,
+input[type="date"]::selection,
+input[type="date"] *::selection {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: inherit !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Infinite scrolling marquee banner ribbon */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-33.3333%); }
+}
+
+.cinta-marquee {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+  will-change: transform;
+}
+
+/* FORZAR BLANCO PURO Y BRILLANTE EN MODO CLARO PARA CONTENEDORES PRINCIPALES CON MÁXIMA LUMINOSIDAD (PANEL ADMIN) */
+html.theme-light .admin-layout aside,
+html.theme-light aside.admin-sidebar {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  box-shadow: 4px 0 24px -2px rgba(0, 0, 0, 0.04), 1px 0 3px rgba(0, 0, 0, 0.02) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+html.theme-light .admin-layout header,
+html.theme-light header.admin-topbar {
+  background-color: var(--theme-primary) !important;
+  background: var(--theme-primary) !important;
+  color: var(--theme-primary-contrast, #ffffff) !important;
+  box-shadow: 0 4px 24px -2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+html.theme-light .bg-theme-card,
+html.theme-light .bg-theme-surface:not(.landing-page) {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.04), 0 4px 10px -2px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(255, 255, 255, 0.9) inset !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light .landing-page,
+html.theme-light .landing-page > section,
+html.theme-light .landing-page > header,
+html.theme-light .landing-page > footer {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── Hover Lift & Brand Primary Glow ────────────────────────────── */
+.hover-primary-glow {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease-in-out !important;
+}
+
+.hover-primary-glow:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--theme-primary, #7c3aed) 35%, transparent), 0 4px 12px -2px color-mix(in srgb, var(--theme-primary, #7c3aed) 20%, transparent) !important;
+}
+
+/* ─── MapLibre GL Sizing & Layering ────────────────────────────── */
+.maplibregl-map {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+}
+
+.maplibregl-canvas-container {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+.maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* ==========================================================================
+   BOTÓN TONAL GOURMET PARA TARJETAS DE PLATILLOS (LANDING)
+   ========================================================================== */
+.btn-dish-order {
+  background-color: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 28%, transparent);
+  color: var(--theme-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-dish-order svg {
+  color: var(--theme-primary);
+  stroke: var(--theme-primary);
+  transition: transform 0.3s ease, color 0.3s ease, stroke 0.3s ease;
+}
+
+.group:hover .btn-dish-order,
+.btn-dish-order:hover {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: var(--theme-primary-contrast, #ffffff) !important;
+  box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--theme-primary) 35%, transparent);
+}
+
+.group:hover .btn-dish-order svg,
+.btn-dish-order:hover svg {
+  color: var(--theme-primary-contrast, #ffffff) !important;
+  stroke: var(--theme-primary-contrast, #ffffff) !important;
+  transform: scale(1.1);
+}
+
+.btn-dish-order:active {
+  transform: scale(0.98);
+}
+
+/* Botón CTA del menú móvil (drawer) */
+.btn-mobile-drawer-cta {
+  border: 1.5px solid var(--theme-primary) !important;
+  color: var(--theme-primary) !important;
+  background-color: transparent !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-mobile-drawer-cta:hover,
+.btn-mobile-drawer-cta:focus,
+.btn-mobile-drawer-cta:active {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: var(--theme-primary-contrast, #ffffff) !important;
+  box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--theme-primary) 35%, transparent);
+}
+
+.btn-mobile-drawer-cta:hover *,
+.btn-mobile-drawer-cta:focus *,
+.btn-mobile-drawer-cta:active * {
+  color: var(--theme-primary-contrast, #ffffff) !important;
+}

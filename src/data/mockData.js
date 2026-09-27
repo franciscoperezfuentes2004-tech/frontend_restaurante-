@@ -1,0 +1,8 @@
+export const mockCategories = []
+export const mockDishes = []
+export const mockExtras = []
+export const mockOrders = []
+export const mockReservations = []
+export const mockAreas = []
+export const mockSalesChart = []
+export const mockModalityChart = []

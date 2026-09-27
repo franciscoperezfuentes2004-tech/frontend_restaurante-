@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Restaurante</title>
+    <script>
+      // ANTI-FOIT (Flash of Incorrect Theme) SCRIPT
+      // Se ejecuta de inmediato antes de pintar el DOM
+      try {
+        var savedName = localStorage.getItem('rest_name');
+        var savedLogo = localStorage.getItem('rest_logo');
+        if (savedName) {
+          document.title = savedName.replace(/(^|\s)\S/g, function(l) { return l.toUpperCase(); });
+        }
+        var iconEl = document.querySelector("link[rel*='icon']");
+        if (iconEl) {
+          iconEl.removeAttribute('type');
+          iconEl.href = savedLogo || 'http://127.0.0.1:8000/api/settings/favicon';
+        }
+
+        // Leer tema guardado
+        var isLight = localStorage.getItem('rest_theme_is_light') === 'true';
+        
+        var themeBg = localStorage.getItem('rest_theme_bg') || (isLight ? '#E9EAF2' : '#1C1917');
+        var themePrimary = localStorage.getItem('rest_theme_primary') || '#1e40af';
+        var themeSurface = localStorage.getItem('rest_theme_surface') || (isLight ? '#FFFFFF' : '#1C1917');
+
+        // Aplicar clases de inmediato
+        if (isLight) {
+          document.documentElement.classList.add('theme-light');
+        } else {
+          document.documentElement.classList.add('theme-dark', 'dark');
+        }
+
+        // Pintar el fondo del documento y guardar variables
+        document.documentElement.style.backgroundColor = themeBg;
+        
+        document.documentElement.style.setProperty('--theme-bg', themeBg);
+        document.documentElement.style.setProperty('--theme-primary', themePrimary);
+        document.documentElement.style.setProperty('--theme-surface', themeSurface);
+        
+        // El loader inicial
+        document.documentElement.style.setProperty('--loader-bg', isLight ? 'rgba(233, 234, 242, 1)' : 'rgba(28, 25, 23, 1)');
+        document.documentElement.style.setProperty('--loader-text', isLight ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)');
+        document.documentElement.style.setProperty('--loader-ring', isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.1)');
+      } catch (e) {}
+    </script>
+    <style>
+      body, html { margin: 0; padding: 0; min-height: 100%; background-color: var(--theme-bg, #1C1917); }
+      
+      /* Fondo transparente que se adapta al tema claro/oscuro */
+      .loader-inicial {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+        background-color: var(--loader-bg, rgba(15, 23, 42, 0.4));
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+      
+      .spinner-container {
+        position: relative;
+        width: 4rem;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .spinner-ring-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 4px solid var(--loader-ring, rgba(255, 255, 255, 0.1));
+        border-radius: 50%;
+      }
+
+      .spinner-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        /* El color tomará la variable CSS si existe, si no usa un azul genérico */
+        border: 4px solid var(--theme-primary, #3b82f6); 
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .spinner-text {
+        margin-top: 1.5rem;
+        color: var(--loader-text, rgba(255, 255, 255, 0.9));
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="loader-inicial">
+        <div class="spinner-container">
+          <div class="spinner-ring-bg"></div>
+          <div class="spinner-ring"></div>
+        </div>
+        <!-- Texto inyectado dinámicamente -->
+        <div class="spinner-text" id="loader-text"></div>
+      </div>
+    </div>
+
+    <script>
+      // Este script se ejecuta instantáneamente
+      (function() {
+        const nombre = localStorage.getItem('nombre_comercial') || localStorage.getItem('rest_name') || 'CARGANDO';
+        const container = document.getElementById('loader-text');
+        if (container) {
+          container.innerText = nombre;
+        }
+      })();
+    </script>
+
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
