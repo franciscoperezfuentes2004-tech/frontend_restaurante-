@@ -31,6 +31,7 @@ import Reports       from './pages/admin/finances/Reports'
 import Costs         from './pages/admin/finances/Costs'
 import KitchenView   from './pages/kitchen/KitchenView'
 import Login         from './pages/auth/Login'
+import ForcePasswordChange from './pages/auth/ForcePasswordChange'
 import WaiterView    from './pages/waiter/WaiterView'
 import DeliveryView  from './pages/delivery/DeliveryView'
 import DriverOrderView from './pages/delivery/DriverOrderView'
@@ -54,6 +55,7 @@ export default function App() {
         <ThemeProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/cambiar-password-obligatorio" element={<ForcePasswordChange />} />
 
             <Route
               path="/admin"

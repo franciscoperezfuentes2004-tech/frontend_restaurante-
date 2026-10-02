@@ -81,3 +81,5 @@ export const activeSessions = () => client.get('/me/sessions')
 export const revokeSession = (sessionId) => client.post('/me/sessions/revoke', { session_id: sessionId })
 export const confirmPassword = (password) => client.post('/me/confirm-password', { password })
 export const changePassword = (currentPassword, newPassword) => client.post('/me/change-password', { current_password: currentPassword, new_password: newPassword })
+export const forcePasswordChange = (newPassword, newPasswordConfirmation) => client.post('/password/force-change', { new_password: newPassword, new_password_confirmation: newPasswordConfirmation })
+

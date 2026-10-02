@@ -100,6 +100,12 @@ export default function Login() {
       const res = await login(email, password)
       loginUser(res.user)
 
+      // Evaluar si se requiere cambio forzado de contraseña temporal
+      if (Boolean(res.user?.must_change_password || res.data?.user?.must_change_password)) {
+        navigate('/cambiar-password-obligatorio')
+        return
+      }
+
       const roleRedirects = {
         super_admin: '/admin/dashboard',
         admin:       '/admin/dashboard',

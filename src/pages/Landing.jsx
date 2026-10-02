@@ -2619,6 +2619,18 @@ export default function Landing() {
                                 <h3 className="text-lg font-serif font-bold uppercase tracking-wide line-clamp-1 text-theme-text group-hover:text-[var(--theme-primary)] transition-colors duration-300">
                                   {dishNombre}
                                 </h3>
+                                {/* Calificación y opiniones */}
+                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                  {(dish.reviews_count ?? 0) > 0 ? (
+                                    <>
+                                      <span className="text-yellow-400 mr-1">⭐</span>
+                                      <span className="font-bold text-gray-700 dark:text-gray-200">{Number(dish.reviews_avg_rating).toFixed(1)}</span>
+                                      <span className="ml-1 text-gray-500 dark:text-gray-400">({dish.reviews_count} opiniones)</span>
+                                    </>
+                                  ) : (
+                                    <span className="text-blue-500 font-semibold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded text-xs">Nuevo</span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-theme-text-muted line-clamp-3 h-[3.75rem] font-normal leading-5">
                                   {dishDesc || ''}
                                 </p>

@@ -27,6 +27,11 @@ export default function DishCard({
 
   const displayText = dishDesc || ingredientsText
 
+  const reviewsCount = Number(dish?.reviews_count ?? dish?.totalResenas ?? dish?.total_resenas ?? 0)
+  const reviewsAvgRating = dish?.reviews_avg_rating !== null && dish?.reviews_avg_rating !== undefined
+    ? Number(dish?.reviews_avg_rating)
+    : (dish?.calificacion ? Number(dish?.calificacion) : null)
+
   // ==========================================
   // MODO PÚBLICO (LANDING PAGE / MENÚ PÚBLICO)
   // ==========================================
@@ -72,6 +77,19 @@ export default function DishCard({
             <h3 className="text-lg font-bold leading-tight mb-1 capitalize text-[var(--theme-text)]">
               {dishName}
             </h3>
+
+            {/* Calificación y opiniones */}
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1 mb-1.5">
+              {reviewsCount > 0 ? (
+                <>
+                  <span className="text-yellow-400 mr-1">⭐</span>
+                  <span className="font-bold text-gray-700 dark:text-gray-200">{Number(reviewsAvgRating).toFixed(1)}</span>
+                  <span className="ml-1 text-gray-500 dark:text-gray-400">({reviewsCount} opiniones)</span>
+                </>
+              ) : (
+                <span className="text-blue-500 font-semibold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded text-xs">Nuevo</span>
+              )}
+            </div>
 
             {/* Ingredientes / Descripción */}
             {displayText && (
@@ -157,6 +175,18 @@ export default function DishCard({
             <h3 className="text-sm font-bold leading-tight text-gray-900 dark:text-white capitalize">
               {dishName}
             </h3>
+            {/* Calificación y opiniones */}
+            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {reviewsCount > 0 ? (
+                <>
+                  <span className="text-yellow-400 mr-1 text-[11px]">⭐</span>
+                  <span className="font-bold text-gray-700 dark:text-gray-200">{Number(reviewsAvgRating).toFixed(1)}</span>
+                  <span className="ml-1 text-gray-500 dark:text-gray-400">({reviewsCount})</span>
+                </>
+              ) : (
+                <span className="text-blue-500 font-semibold bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-[10px]">Nuevo</span>
+              )}
+            </div>
             {dishDesc && (
               <p className="text-[11px] text-gray-600 dark:text-gray-400 line-clamp-2 leading-snug">
                 {dishDesc}

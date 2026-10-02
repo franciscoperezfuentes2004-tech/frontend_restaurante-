@@ -9,5 +9,13 @@ export default function ProtectedRoute({ children }) {
     return <LoaderGlobal texto="CARGANDO EXPERIENCIA..." />
   }
 
-  return user ? children : <Navigate to="/login" replace />
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (Boolean(user.must_change_password)) {
+    return <Navigate to="/cambiar-password-obligatorio" replace />
+  }
+
+  return children
 }

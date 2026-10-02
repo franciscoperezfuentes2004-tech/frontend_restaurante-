@@ -284,8 +284,10 @@ const formatearBadgeTexto = (badge, platilloNombre, esPromo, esOferta) => {
 // Componente Card de Platillo (Compacto, elegante y no invasivo)
 const PlatilloCard = ({ platillo, onAbrirDetalle, onAgregarRapido, isHighlighted }) => {
   const isAvailable = platillo.disponible !== false && platillo.is_available !== false && (platillo.stock === undefined || platillo.stock === null || platillo.stock > 0)
-  const ratingValue = platillo.calificacion || platillo.rating || null
-  const reviewsCount = platillo.totalResenas || platillo.total_resenas || platillo.reviewsCount || 0
+  const reviewsCount = Number(platillo.reviews_count ?? platillo.totalResenas ?? platillo.total_resenas ?? platillo.reviewsCount ?? 0)
+  const ratingValue = platillo.reviews_avg_rating !== null && platillo.reviews_avg_rating !== undefined
+    ? Number(platillo.reviews_avg_rating)
+    : (platillo.calificacion ? Number(platillo.calificacion) : (platillo.rating ? Number(platillo.rating) : null))
 
   return (
     <div
@@ -408,20 +410,16 @@ const PlatilloCard = ({ platillo, onAbrirDetalle, onAgregarRapido, isHighlighted
           </div>
 
           {/* Calificación y opiniones: con salto de línea (mt-3) para separar de la descripción */}
-          <div className="flex items-center gap-1.5 mt-3 pt-0.5 text-xs select-none">
-            <Star 
-              className={`w-3.5 h-3.5 stroke-[1.8] ${
-                ratingValue 
-                  ? 'fill-amber-400 text-amber-400' 
-                  : 'text-[var(--theme-primary)] fill-[var(--theme-primary)]/10'
-              }`} 
-            />
-            <span className="font-bold text-xs text-theme-text">
-              {ratingValue ? Number(ratingValue).toFixed(1) : '0.0'}
-            </span>
-            <span className="text-[11px] text-theme-text-muted">
-              ({reviewsCount || 0})
-            </span>
+          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-3 pt-0.5 select-none">
+            {reviewsCount > 0 ? (
+              <>
+                <span className="text-yellow-400 mr-1">⭐</span>
+                <span className="font-bold text-gray-700 dark:text-gray-200">{Number(ratingValue).toFixed(1)}</span>
+                <span className="ml-1 text-gray-500 dark:text-gray-400">({reviewsCount} opiniones)</span>
+              </>
+            ) : (
+              <span className="text-blue-500 font-semibold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded text-xs">Nuevo</span>
+            )}
           </div>
 
           {/* Indicadores de características con tooltip */}
@@ -741,7 +739,11 @@ export default function MenuPage() {
                     : []))),
       allow_extras: Boolean(d.allow_extras ?? d.allowExtras ?? (Array.isArray(d.extras) && d.extras.length > 0)),
       restricciones: Array.isArray(d.restricciones) ? d.restricciones : [],
-      allow_spice_level: Boolean(d.allow_spice_level ?? d.allowSpiceLevel ?? false)
+      allow_spice_level: Boolean(d.allow_spice_level ?? d.allowSpiceLevel ?? false),
+      reviews_count: Number(d.reviews_count ?? d.totalResenas ?? d.total_resenas ?? 0),
+      reviews_avg_rating: d.reviews_avg_rating !== null && d.reviews_avg_rating !== undefined
+        ? Number(d.reviews_avg_rating)
+        : (d.calificacion ? Number(d.calificacion) : (d.rating ? Number(d.rating) : null))
     }
   })
 
