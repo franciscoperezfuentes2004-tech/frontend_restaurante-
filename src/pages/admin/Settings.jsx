@@ -31,7 +31,13 @@ import {
   CreditCard,
   Banknote,
   Landmark,
-  Wallet
+  Wallet,
+  Bell,
+  BellOff,
+  Link2,
+  Key,
+  Hash,
+  Send
 } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
@@ -233,6 +239,13 @@ export default function Settings() {
   const [transferenciaClabe, setTransferenciaClabe] = useState('')
   const [transferenciaTitular, setTransferenciaTitular] = useState('')
   const [savingPaymentMethods, setSavingPaymentMethods] = useState(false)
+
+  // Section 7 State: Integraciones de Notificaciones (Discord / Telegram)
+  const [notificationPlatform, setNotificationPlatform] = useState('none')
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState('')
+  const [telegramBotToken, setTelegramBotToken] = useState('')
+  const [telegramChatId, setTelegramChatId] = useState('')
+  const [savingNotifications, setSavingNotifications] = useState(false)
 
   // Validaciones calculadas en tiempo real
   const validations = {
@@ -473,6 +486,17 @@ export default function Settings() {
           setPinCoords({ lng, lat })
         }
       }
+
+      // Cargar Integraciones de Notificaciones (Discord / Telegram)
+      const loadedPlatform = d.active_notification_platform ?? d.activeNotificationPlatform ?? 'none'
+      const loadedDiscord = d.discord_webhook_url ?? d.discordWebhookUrl ?? ''
+      const loadedTelegramToken = d.telegram_bot_token ?? d.telegramBotToken ?? ''
+      const loadedTelegramChat = d.telegram_chat_id ?? d.telegramChatId ?? ''
+
+      setNotificationPlatform(loadedPlatform)
+      setDiscordWebhookUrl(loadedDiscord)
+      setTelegramBotToken(loadedTelegramToken)
+      setTelegramChatId(loadedTelegramChat)
     } catch (err) {
       console.error('Settings error:', err)
       setError('No se pudo cargar la configuración')
@@ -873,6 +897,34 @@ export default function Settings() {
       setToast({ message: errorMsg, type: 'error' })
     } finally {
       setSavingPaymentMethods(false)
+    }
+  }
+
+  const handleSaveNotifications = async (e) => {
+    e?.preventDefault?.()
+    setSavingNotifications(true)
+    try {
+      const payload = {
+        ...settings,
+        active_notification_platform: notificationPlatform,
+        activeNotificationPlatform: notificationPlatform,
+        discord_webhook_url: discordWebhookUrl ? discordWebhookUrl.trim() : null,
+        discordWebhookUrl: discordWebhookUrl ? discordWebhookUrl.trim() : null,
+        telegram_bot_token: telegramBotToken ? telegramBotToken.trim() : null,
+        telegramBotToken: telegramBotToken ? telegramBotToken.trim() : null,
+        telegram_chat_id: telegramChatId ? telegramChatId.trim() : null,
+        telegramChatId: telegramChatId ? telegramChatId.trim() : null,
+      }
+
+      await updateSettings(payload)
+      setSettings(prev => ({ ...prev, ...payload }))
+      setToast({ message: 'Integración de notificaciones guardada correctamente', type: 'success' })
+    } catch (err) {
+      console.error('Error guardando configuración de notificaciones:', err)
+      const errorMsg = err?.response?.data?.message || err?.message || 'Error al guardar configuración de notificaciones'
+      setToast({ message: errorMsg, type: 'error' })
+    } finally {
+      setSavingNotifications(false)
     }
   }
 
@@ -2032,6 +2084,275 @@ export default function Settings() {
               >
                 <Save size={16} style={{ color: primaryBtnText }} />
                 <span style={{ color: primaryBtnText }}>Guardar cambios</span>
+              </button>
+            </div>
+          </form>
+
+          {/* 5. Integraciones de Notificaciones (Discord / Telegram) */}
+          <form
+            onSubmit={handleSaveNotifications}
+            style={{ backgroundColor: isLight ? '#FFFFFF' : 'var(--theme-surface)', border: `1px solid ${borderSubtle}`, boxShadow: cardShadow, color: textColor }}
+            className="rounded-2xl p-6 transition-all duration-200 max-md:p-4 max-md:space-y-2"
+          >
+            <div className="space-y-6 flex-1">
+              {/* Header */}
+              <div className="flex items-center gap-3 pb-2 border-b" style={{ borderColor: borderSubtle }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: `${colorPrimario}15`, border: `1px solid ${colorPrimario}30` }}>
+                  <Bell size={18} style={{ color: colorPrimario }} />
+                </div>
+                <div>
+                  <h2 className="font-bold text-base leading-tight" style={{ color: textColor }}>Integraciones de notificaciones</h2>
+                  <p className="text-xs mt-0.5" style={{ color: textMuted }}>Configura las alertas automáticas para pedidos y reservaciones en tiempo real</p>
+                </div>
+              </div>
+
+              {/* Selector de plataforma interactivo */}
+              <div className="space-y-3">
+                <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: textMuted }}>
+                  Plataforma activa
+                </label>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {/* Opción Ninguna */}
+                  <button
+                    type="button"
+                    onClick={() => setNotificationPlatform('none')}
+                    className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer shadow-xs ${
+                      notificationPlatform === 'none'
+                        ? 'ring-2'
+                        : 'hover:border-brand-500/40 opacity-75 hover:opacity-100'
+                    }`}
+                    style={{
+                      backgroundColor: notificationPlatform === 'none' 
+                        ? (isLight ? '#f1f5f9' : 'rgba(255,255,255,0.08)')
+                        : (isLight ? '#f8fafc' : 'rgba(255,255,255,0.02)'),
+                      borderColor: notificationPlatform === 'none' ? colorPrimario : borderSubtle,
+                      ringColor: notificationPlatform === 'none' ? `${colorPrimario}50` : 'transparent',
+                    }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                      style={{
+                        backgroundColor: notificationPlatform === 'none' ? `${colorPrimario}20` : (isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)'),
+                        color: notificationPlatform === 'none' ? colorPrimario : textMuted
+                      }}
+                    >
+                      <BellOff size={16} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold truncate" style={{ color: textColor }}>Ninguna</p>
+                      <p className="text-[11px] truncate" style={{ color: textMuted }}>Desactivado</p>
+                    </div>
+                    {notificationPlatform === 'none' && (
+                      <Check size={14} className="shrink-0" style={{ color: colorPrimario }} />
+                    )}
+                  </button>
+
+                  {/* Opción Discord */}
+                  <button
+                    type="button"
+                    onClick={() => setNotificationPlatform('discord')}
+                    className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer shadow-xs ${
+                      notificationPlatform === 'discord'
+                        ? 'ring-2'
+                        : 'hover:border-brand-500/40 opacity-75 hover:opacity-100'
+                    }`}
+                    style={{
+                      backgroundColor: notificationPlatform === 'discord' 
+                        ? (isLight ? '#f1f5f9' : 'rgba(255,255,255,0.08)')
+                        : (isLight ? '#f8fafc' : 'rgba(255,255,255,0.02)'),
+                      borderColor: notificationPlatform === 'discord' ? colorPrimario : borderSubtle,
+                      ringColor: notificationPlatform === 'discord' ? `${colorPrimario}50` : 'transparent',
+                    }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                      style={{
+                        backgroundColor: notificationPlatform === 'discord' ? '#5865F220' : (isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)'),
+                        color: notificationPlatform === 'discord' ? '#5865F2' : textMuted
+                      }}
+                    >
+                      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold truncate" style={{ color: textColor }}>Discord</p>
+                      <p className="text-[11px] truncate" style={{ color: textMuted }}>Canal Webhook</p>
+                    </div>
+                    {notificationPlatform === 'discord' && (
+                      <Check size={14} className="shrink-0" style={{ color: colorPrimario }} />
+                    )}
+                  </button>
+
+                  {/* Opción Telegram */}
+                  <button
+                    type="button"
+                    onClick={() => setNotificationPlatform('telegram')}
+                    className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer shadow-xs ${
+                      notificationPlatform === 'telegram'
+                        ? 'ring-2'
+                        : 'hover:border-brand-500/40 opacity-75 hover:opacity-100'
+                    }`}
+                    style={{
+                      backgroundColor: notificationPlatform === 'telegram' 
+                        ? (isLight ? '#f1f5f9' : 'rgba(255,255,255,0.08)')
+                        : (isLight ? '#f8fafc' : 'rgba(255,255,255,0.02)'),
+                      borderColor: notificationPlatform === 'telegram' ? colorPrimario : borderSubtle,
+                      ringColor: notificationPlatform === 'telegram' ? `${colorPrimario}50` : 'transparent',
+                    }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                      style={{
+                        backgroundColor: notificationPlatform === 'telegram' ? '#229ED920' : (isLight ? '#e2e8f0' : 'rgba(255,255,255,0.06)'),
+                        color: notificationPlatform === 'telegram' ? '#229ED9' : textMuted
+                      }}
+                    >
+                      <Send size={15} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold truncate" style={{ color: textColor }}>Telegram</p>
+                      <p className="text-[11px] truncate" style={{ color: textMuted }}>Bot & Chat ID</p>
+                    </div>
+                    {notificationPlatform === 'telegram' && (
+                      <Check size={14} className="shrink-0" style={{ color: colorPrimario }} />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Renderizado condicional */}
+              {notificationPlatform === 'discord' && (
+                <div 
+                  className="rounded-xl p-4 space-y-4 border transition-all animate-fadeIn"
+                  style={{ 
+                    backgroundColor: 'var(--theme-subcard-bg)', 
+                    borderColor: borderSubtle 
+                  }}
+                >
+                  <div className="flex items-center gap-2 pb-1 border-b border-black/5 dark:border-white/5">
+                    <Link2 size={15} style={{ color: colorPrimario }} />
+                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: textColor }}>
+                      Configuración de Webhook de Discord
+                    </span>
+                  </div>
+
+                  <div className="w-full">
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                      URL del Webhook de Discord
+                    </label>
+                    <div className="relative">
+                      <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                      <input 
+                        type="url"
+                        value={discordWebhookUrl}
+                        onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+                        placeholder="https://discord.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz..."
+                        style={{ color: textColor }}
+                        className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                      />
+                    </div>
+                    <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                      Pega la URL del Webhook generada en Discord (Canal &gt; Ajustes &gt; Integraciones &gt; Webhooks).
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {notificationPlatform === 'telegram' && (
+                <div 
+                  className="rounded-xl p-4 space-y-4 border transition-all animate-fadeIn"
+                  style={{ 
+                    backgroundColor: 'var(--theme-subcard-bg)', 
+                    borderColor: borderSubtle 
+                  }}
+                >
+                  <div className="flex items-center gap-2 pb-1 border-b border-black/5 dark:border-white/5">
+                    <Send size={15} style={{ color: colorPrimario }} />
+                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: textColor }}>
+                      Configuración de Bot de Telegram
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Token del Bot */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Token del Bot
+                      </label>
+                      <div className="relative">
+                        <Key size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramBotToken}
+                          onChange={(e) => setTelegramBotToken(e.target.value)}
+                          placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Token generado por @BotFather en Telegram.
+                      </p>
+                    </div>
+
+                    {/* ID del Chat */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        ID del Chat
+                      </label>
+                      <div className="relative">
+                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramChatId}
+                          onChange={(e) => setTelegramChatId(e.target.value)}
+                          placeholder="-1001234567890 o @tu_canal"
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        ID del grupo, canal o usuario para enviar mensajes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {notificationPlatform === 'none' && (
+                <div 
+                  className="flex items-start gap-3 p-4 rounded-xl border shadow-xs transition-all"
+                  style={{ backgroundColor: 'var(--theme-subcard-bg)', borderColor: borderSubtle }}
+                >
+                  <BellOff className="w-5 h-5 shrink-0 mt-0.5" style={{ color: textMuted }} />
+                  <div className="space-y-1 text-xs leading-relaxed font-medium" style={{ color: textMuted }}>
+                    <span className="font-bold block" style={{ color: textColor }}>Notificaciones externas desactivadas</span>
+                    <p>No se enviarán alertas a Discord o Telegram. Los pedidos y reservaciones continuarán funcionando normalmente en el panel administrativo.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-6 shrink-0">
+              <button 
+                type="submit" 
+                disabled={savingNotifications}
+                style={{ backgroundColor: colorPrimario, color: primaryBtnText }}
+                className="flex items-center gap-2 hover:opacity-95 rounded-xl px-5 py-2.5 text-sm font-semibold cursor-pointer transition-all shadow-md disabled:opacity-50"
+              >
+                {savingNotifications ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" style={{ color: primaryBtnText }} />
+                    <span style={{ color: primaryBtnText }}>Guardando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} style={{ color: primaryBtnText }} />
+                    <span style={{ color: primaryBtnText }}>Guardar cambios</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
