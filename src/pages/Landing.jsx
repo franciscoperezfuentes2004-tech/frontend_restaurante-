@@ -76,7 +76,7 @@ const getImageUrl = (img) => {
   if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('blob:')) {
     return raw
   }
-  const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
+  const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '')
   return `${baseUrl}/storage/${raw.replace(/^\/+/, '')}`
 }
 
@@ -1400,7 +1400,7 @@ export default function Landing() {
   }
 
   useEffect(() => {
-    const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/+$/, '')
+    const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
 
     // 1. Petición para Estadísticas con RUTA COMPLETA
     axios.get(`${apiBase}/estadisticas-resenas`)

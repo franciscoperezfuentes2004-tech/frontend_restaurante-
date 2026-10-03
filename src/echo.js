@@ -29,8 +29,8 @@ const wsHost = import.meta.env.VITE_REVERB_HOST || (typeof window !== 'undefined
 const wsPort = import.meta.env.VITE_REVERB_PORT ? Number(import.meta.env.VITE_REVERB_PORT) : 8080
 const wsScheme = import.meta.env.VITE_REVERB_SCHEME || 'http'
 const isTls = wsScheme === 'https' || (typeof window !== 'undefined' && window.location.protocol === 'https:')
-const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-const authUrl = apiBase.endsWith('/') ? `${apiBase}broadcasting/auth` : `${apiBase}/broadcasting/auth`
+const apiBase = import.meta.env.VITE_API_URL || ''
+const authUrl = apiBase.endsWith('/') ? `${apiBase}broadcasting/auth` : (apiBase ? `${apiBase}/broadcasting/auth` : '/api/broadcasting/auth')
 
 const echo = new Echo({
   broadcaster: 'reverb',

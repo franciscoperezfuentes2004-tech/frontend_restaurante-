@@ -28,12 +28,13 @@ export default function Login() {
   const [brandColor, setBrandColor] = useState('#7c3aed')
   const [bgColor, setBgColor] = useState('#0a0914')
   const [logoUrl, setLogoUrl] = useState(null)
-  const [restaurantName, setRestaurantName] = useState('AURUM')
+  const [restaurantName, setRestaurantName] = useState('Restaurante')
   const [emailFocused, setEmailFocused] = useState(false)
   const [passwordFocused, setPasswordFocused] = useState(false)
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/settings', { 
+    const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+    fetch(`${apiUrl}/settings`, { 
       credentials: 'include' 
     })
       .then(r => r.json())

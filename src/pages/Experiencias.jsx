@@ -15,7 +15,7 @@ const getImageUrl = (img) => {
     if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('blob:')) {
         return raw;
     }
-    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
+    const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '');
     return `${baseUrl}/storage/${raw.replace(/^\/+/, '')}`;
 };
 

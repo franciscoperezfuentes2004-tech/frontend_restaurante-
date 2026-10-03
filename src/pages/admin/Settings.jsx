@@ -404,7 +404,7 @@ export default function Settings() {
       
       setRestLogo(loadedLogo)
       setPreviewLogo(loadedLogo || null)
-      setRestaurantName(loadedName || 'AURUM')
+      setRestaurantName(loadedName || 'Restaurante')
       if (loadedLogo) setLogoUrl(loadedLogo)
       
       const loadedFondo = d.fondo_sistema ?? d.fondoSistema ?? d.color_fondo ?? '#1C1917'
@@ -1470,7 +1470,7 @@ export default function Settings() {
                         type="text"
                         value={transferenciaTitular}
                         onChange={(e) => setTransferenciaTitular(e.target.value)}
-                        placeholder="Ej. Restaurante Aurum S.A. de C.V. o Juan Pérez"
+                        placeholder="Ej. Restaurante S.A. de C.V. o Juan Pérez"
                         className="input-surface w-full bg-white dark:bg-[var(--theme-surface)] border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent transition-all font-medium shadow-xs"
                         style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border-subtle)', color: textColor }}
                       />

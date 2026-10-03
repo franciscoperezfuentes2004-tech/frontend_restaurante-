@@ -17,7 +17,7 @@ export default function ForcePasswordChange() {
 
   const [brandColor, setBrandColor] = useState('#7c3aed')
   const [logoUrl, setLogoUrl] = useState(null)
-  const [restaurantName, setRestaurantName] = useState('AURUM')
+  const [restaurantName, setRestaurantName] = useState('Restaurante')
   const [newPasswordFocused, setNewPasswordFocused] = useState(false)
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false)
 

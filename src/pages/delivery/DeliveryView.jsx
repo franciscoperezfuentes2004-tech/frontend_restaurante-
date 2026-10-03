@@ -588,16 +588,16 @@ export default function DeliveryView() {
                   color: primaryBtnText || '#ffffff' 
                 }}
               >
-                {(restaurantName || 'A')[0].toUpperCase()}
+                {(restaurantName || 'R')[0].toUpperCase()}
               </div>
             )}
 
             <span 
               className="font-bold text-xs sm:text-sm tracking-wider uppercase truncate max-w-[120px] sm:max-w-xs"
               style={{ color: textColor }}
-              title={restaurantName || 'AURUM'}
+              title={restaurantName || 'Restaurante'}
             >
-              {restaurantName || 'AURUM'}
+              {restaurantName || 'Restaurante'}
             </span>
           </div>
 

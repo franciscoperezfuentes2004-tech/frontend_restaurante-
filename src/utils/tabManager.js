@@ -17,9 +17,7 @@ export function getFullImageUrl(url) {
   }
 
   const apiBase = (import.meta.env?.VITE_API_URL || '').replace(/\/api\/?$/, '')
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const base = apiBase || origin || 'http://localhost:8000'
-
+  const base = apiBase || origin
   return `${base}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`
 }
 

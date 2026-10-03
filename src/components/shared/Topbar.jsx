@@ -247,16 +247,16 @@ export default function Topbar({ onToggleSidebar }) {
               }}
             >
               <span className="font-bold">
-                {(restaurantName || 'A')[0].toUpperCase()}
+                {(restaurantName || 'R')[0].toUpperCase()}
               </span>
             </div>
           )}
           <span 
             className="font-bold tracking-wider uppercase text-xs sm:text-sm max-md:text-[10px] truncate" 
             style={{ color: textColor }}
-            title={restaurantName || 'AURUM'}
+            title={restaurantName || 'Restaurante'}
           >
-            {restaurantName || 'AURUM'}
+            {restaurantName || 'Restaurante'}
           </span>
         </div>
       </div>

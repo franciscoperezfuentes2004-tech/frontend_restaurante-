@@ -735,16 +735,16 @@ export default function WaiterView() {
                   color: primaryBtnText || '#ffffff' 
                 }}
               >
-                {(restaurantName || 'A')[0].toUpperCase()}
+                {(restaurantName || 'R')[0].toUpperCase()}
               </div>
             )}
 
             <span 
               className="font-bold text-xs sm:text-sm max-md:text-[10px] tracking-wider uppercase truncate max-w-[120px] sm:max-w-xs max-md:max-w-[70px]"
               style={{ color: textColor }}
-              title={restaurantName || 'AURUM'}
+              title={restaurantName || 'Restaurante'}
             >
-              {restaurantName || 'AURUM'}
+              {restaurantName || 'Restaurante'}
             </span>
           </div>
 

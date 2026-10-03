@@ -153,7 +153,7 @@ export default function Sidebar({ isOpen = false, onClose }) {
         style={{ borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'var(--theme-border-subtle)' }}
       >
         <span className="font-bold text-xs uppercase tracking-wider truncate" style={{ color: textColor }}>
-          {restaurantName || 'AURUM'}
+          {restaurantName || 'Restaurante'}
         </span>
         <button
           type="button"

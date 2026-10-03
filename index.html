@@ -20,7 +20,7 @@
         var iconEl = document.querySelector("link[rel*='icon']");
         if (iconEl) {
           iconEl.removeAttribute('type');
-          iconEl.href = savedLogo || 'http://127.0.0.1:8000/api/settings/favicon';
+          iconEl.href = savedLogo || '/favicon.svg';
         }
 
         // Leer tema guardado

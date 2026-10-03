@@ -120,7 +120,7 @@ export const getConfiguracion = () =>
           || config.restaurant_name
           || config.nombre_comercial
           || config.nombre
-          || 'AURUM',
+          || 'Restaurante',
         logo_url: admin.logo_url
           || settings.logo_url
           || config.logo_url
