@@ -519,8 +519,10 @@ export default function Permissions() {
 
   // Obtener Iniciales para Avatar
   const getInitials = (name) => {
-    if (!name) return 'U'
-    return name
+    const displayName = typeof name === 'string' ? name : ''
+    if (!displayName.trim()) return 'U'
+    return displayName
+      .trim()
       .split(' ')
       .filter(Boolean)
       .map(n => n[0])

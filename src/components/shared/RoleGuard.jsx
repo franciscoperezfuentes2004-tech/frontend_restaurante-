@@ -15,11 +15,16 @@ export default function RoleGuard({ allowedRoles, requiredPermission, children }
     return <Navigate to="/login" replace />
   }
 
-  if (user.role === 'super_admin' || user.role === 'admin') {
+  const userRole = typeof user.role === 'string' ? user.role : (Array.isArray(user.roles) ? user.roles[0] : '')
+  const userRoles = (typeof user.roles === 'string' ? user.roles.split(',') : (Array.isArray(user.roles) ? user.roles : (userRole ? [userRole] : []))) || []
+
+  if (userRole === 'super_admin' || userRole === 'admin' || userRoles.includes('super_admin') || userRoles.includes('admin')) {
     return children
   }
 
-  const isRoleAllowed = allowedRoles ? allowedRoles.includes(user.role) : true
+  const roles = (typeof allowedRoles === 'string' ? allowedRoles.split(',') : (Array.isArray(allowedRoles) ? allowedRoles : [])) || []
+  const cleanRoles = roles.map(r => typeof r === 'string' ? r.trim() : r)
+  const isRoleAllowed = cleanRoles.length > 0 ? cleanRoles.some(r => userRoles.includes(r) || userRole === r) : true
   const isPermissionAllowed = requiredPermission ? hasPermission(requiredPermission) : true
 
   if (!isRoleAllowed || !isPermissionAllowed) {

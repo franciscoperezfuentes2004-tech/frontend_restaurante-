@@ -1417,8 +1417,8 @@ export default function Reports() {
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="font-semibold text-theme-text">{item.next_run ? item.next_run.split(' ')[0] : 'N/A'}</div>
-                              <div className="text-xs text-theme-text-muted font-medium mt-0.5">{item.next_run ? item.next_run.split(' ')[1] + ' hrs' : ''}</div>
+                              <div className="font-semibold text-theme-text">{typeof item.next_run === 'string' ? item.next_run.split(' ')[0] : (item.next_run || 'N/A')}</div>
+                              <div className="text-xs text-theme-text-muted font-medium mt-0.5">{typeof item.next_run === 'string' && item.next_run.includes(' ') ? item.next_run.split(' ')[1] + ' hrs' : ''}</div>
                             </td>
                             <td className="px-4 py-3">
                               <span className={`inline-block text-[11px] font-bold px-2.5 py-1 rounded-lg border tracking-wide text-center min-w-[50px] ${

@@ -357,7 +357,7 @@ export default function Dishes() {
 
     const listAllergens = hasAllergens ? allergens : []
     const listIngredients = hasIngredients 
-      ? ingredients.split('\n').map(i => i.trim()).filter(Boolean)
+      ? (typeof ingredients === 'string' ? ingredients.split('\n').map(i => i.trim()).filter(Boolean) : (Array.isArray(ingredients) ? ingredients : []))
       : []
 
     const payload = {

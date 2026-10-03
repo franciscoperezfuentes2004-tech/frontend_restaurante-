@@ -35,7 +35,7 @@ const OPERATING_HOURS_START = '12:00'
 const OPERATING_HOURS_END = '23:00'
 
 const formatTimeLabel = (timeStr) => {
-  if (!timeStr) return ''
+  if (!timeStr || typeof timeStr !== 'string') return ''
   const [hStr, mStr] = timeStr.split(':')
   const h = parseInt(hStr, 10)
   const m = mStr || '00'
@@ -131,7 +131,7 @@ const getEstablishedHours = (dateStr, config) => {
 }
 
 const generateSlots = (startStr, endStr) => {
-  if (!startStr || !endStr) return []
+  if (!startStr || !endStr || typeof startStr !== 'string' || typeof endStr !== 'string') return []
   const [sH, sM] = startStr.split(':').map(Number)
   let [eH, eM] = endStr.split(':').map(Number)
   if (eH < sH) eH += 24
@@ -629,10 +629,10 @@ export default function Reservations() {
 
   const handleOpenReprogram = (item) => {
     setReprogramItem(item)
-    const resDate = item.reservation_date ?? item.date ?? ''
-    const resDateOnly = resDate.split('T')[0]
+    const resDate = String(item.reservation_date ?? item.date ?? '')
+    const resDateOnly = resDate.includes('T') ? resDate.split('T')[0] : resDate
     setReprogramFecha(resDateOnly)
-    const resTime = item.reservation_time ?? item.time ?? ''
+    const resTime = String(item.reservation_time ?? item.time ?? '')
     setReprogramHora(resTime.slice(0, 5))
   }
 
@@ -697,7 +697,7 @@ export default function Reservations() {
     setFormCliente(item.customer_name ?? item.name ?? '')
     setFormTelefono(item.customer_phone ?? item.phone ?? '')
     setFormCorreo(item.customer_email ?? item.email ?? '')
-    setFormFecha((item.reservation_date ?? item.date ?? '').split('T')[0])
+    setFormFecha(String(item.reservation_date ?? item.date ?? '').split('T')[0])
     setFormHora((item.reservation_time ?? item.time ?? '').slice(0, 5))
     setFormPersonas((item.guests_count ?? item.guests ?? '').toString())
     setFormArea(item.area_id ? item.area_id.toString() : '')
@@ -1859,7 +1859,7 @@ export default function Reservations() {
           MODAL ASIGNACIÓN DE MESA — se abre al pulsar "Aceptar"
           ──────────────────────────────────────────────────── */}
       {asignarMesaItem && (() => {
-        const resDate = (asignarMesaItem.reservation_date ?? asignarMesaItem.date ?? '').split('T')[0]
+        const resDate = String(asignarMesaItem.reservation_date ?? asignarMesaItem.date ?? '').split('T')[0]
         const areaId = asignarMesaItem.area_id
         const mesasConMeta = getAvailableTablesWithMeta(areaId, resDate, asignarMesaItem.id)
         const areaName = (typeof asignarMesaItem.area === 'string' && asignarMesaItem.area.trim())

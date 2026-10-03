@@ -2943,7 +2943,7 @@ export default function Landing() {
                     >
                       <div className="md:col-span-3 flex flex-col items-center md:items-start justify-center md:border-r border-[var(--theme-border-subtle)] md:pr-6 text-center md:text-left select-none pointer-events-none">
                         <span className="text-xs font-bold text-theme-text-muted uppercase tracking-[0.2em] mb-1 font-sans">
-                          {promo.tipoBeneficio ? promo.tipoBeneficio.split(' ')[0] : 'BENEFICIO'}
+                          {typeof promo.tipoBeneficio === 'string' ? promo.tipoBeneficio.split(' ')[0] : 'BENEFICIO'}
                         </span>
                         <div className="text-5xl md:text-7xl font-normal font-serif text-[var(--theme-primary)] leading-none">
                           {promo.beneficio}

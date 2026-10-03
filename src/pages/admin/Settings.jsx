@@ -452,10 +452,9 @@ export default function Settings() {
       
       setAdminEmail(d.email ?? d.admin_email ?? 'admin@restaurante.com')
       setAdminPhone(d.phone ?? d.admin_phone ?? '')
-      
       setPostalCode(d.postal_code ?? d.postalCode ?? '')
       setStreetName(d.street_name ?? d.streetName ?? '')
-      const cityStateVal = d.city_state ?? d.cityState ?? ''
+      const cityStateVal = typeof (d.city_state ?? d.cityState) === 'string' ? (d.city_state ?? d.cityState) : ''
       const parts = cityStateVal.split(',')
       setCiudad(parts[0]?.trim() ?? '')
       setMunicipio(d.municipio ?? '')

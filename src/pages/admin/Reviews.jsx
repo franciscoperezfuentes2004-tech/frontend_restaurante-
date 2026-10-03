@@ -1264,7 +1264,7 @@ export default function Reviews() {
                       <div className="flex items-center justify-between py-1.5 max-lg:py-1 border-b border-theme-border-subtle">
                         <span className="text-theme-text-muted text-xs max-lg:text-[11px]">Fecha de Reseña:</span>
                         <span className="text-theme-text font-mono text-xs max-lg:text-[11px]">
-                          {detailData.created_at ? detailData.created_at.split(' ')[0] : 'N/A'}
+                          {typeof detailData.created_at === 'string' ? detailData.created_at.split(' ')[0] : (detailData.created_at || 'N/A')}
                         </span>
                       </div>
 
@@ -1275,7 +1275,7 @@ export default function Reviews() {
                           Hora:
                         </span>
                         <span className="text-theme-text font-mono text-xs max-lg:text-[11px]">
-                          {detailData.created_at && detailData.created_at.includes(' ')
+                          {typeof detailData.created_at === 'string' && detailData.created_at.includes(' ')
                             ? detailData.created_at.split(' ')[1]
                             : '12:00:00'}
                         </span>

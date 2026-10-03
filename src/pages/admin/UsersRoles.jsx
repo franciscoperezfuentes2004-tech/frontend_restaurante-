@@ -264,7 +264,7 @@ export default function UsersRoles() {
       userItem.usuario ||
       userItem.user_name ||
       userItem.user ||
-      (userItem.email ? userItem.email.split('@')[0] : 'Usuario')
+      (typeof userItem.email === 'string' ? userItem.email.split('@')[0] : 'Usuario')
     )
   }
 

@@ -4,8 +4,29 @@ import { getUser, logout as serviceLogout, hasPermission, hasRole } from '../ser
 
 const AuthContext = createContext(null)
 
+const normalizeUserData = (data) => {
+  if (!data || typeof data !== 'object') return data
+  const normalized = { ...data }
+  if (normalized.roles) {
+    normalized.roles = (typeof normalized.roles === 'string' ? normalized.roles.split(',') : normalized.roles) || []
+    if (Array.isArray(normalized.roles)) {
+      normalized.roles = normalized.roles.map(r => typeof r === 'string' ? r.trim() : r).filter(Boolean)
+    }
+  }
+  if (normalized.permissions) {
+    normalized.permissions = (typeof normalized.permissions === 'string' ? normalized.permissions.split(',') : normalized.permissions) || []
+    if (Array.isArray(normalized.permissions)) {
+      normalized.permissions = normalized.permissions.map(p => typeof p === 'string' ? p.trim() : p).filter(Boolean)
+    }
+  }
+  if (Array.isArray(normalized.role) && normalized.role.length > 0) {
+    normalized.role = normalized.role[0]
+  }
+  return normalized
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(() => getUser())
+  const [user, setUser]       = useState(() => normalizeUserData(getUser()))
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -13,8 +34,9 @@ export function AuthProvider({ children }) {
     if (savedUser) {
       me()
         .then(res => {
-          setUser(res.data)
-          localStorage.setItem('aurum_user', JSON.stringify(res.data))
+          const cleanUser = normalizeUserData(res.data)
+          setUser(cleanUser)
+          localStorage.setItem('aurum_user', JSON.stringify(cleanUser))
         })
         .catch(() => {
           setUser(null)
@@ -29,8 +51,9 @@ export function AuthProvider({ children }) {
 
   const loginUser = (userData) => {
     if (userData) {
-      localStorage.setItem('aurum_user', JSON.stringify(userData))
-      setUser(userData)
+      const cleanUser = normalizeUserData(userData)
+      localStorage.setItem('aurum_user', JSON.stringify(cleanUser))
+      setUser(cleanUser)
     }
   }
 

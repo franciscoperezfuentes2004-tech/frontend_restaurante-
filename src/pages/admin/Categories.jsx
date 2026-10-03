@@ -330,7 +330,7 @@ export default function Categories() {
   }
 
   const formatTime = (timeStr) => {
-    if (!timeStr) return ''
+    if (!timeStr || typeof timeStr !== 'string') return ''
     const parts = timeStr.split(':')
     if (parts.length < 2) return timeStr
     let h = parseInt(parts[0], 10)

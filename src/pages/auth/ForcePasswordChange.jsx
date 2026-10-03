@@ -48,7 +48,10 @@ export default function ForcePasswordChange() {
           cocina:      '/cocina',
           repartidor:  '/repartidor',
         }
-        const dest = roleRedirects[user.role] || '/admin/dashboard'
+        const userRole = typeof user.role === 'string'
+          ? user.role
+          : (Array.isArray(user.roles) ? user.roles[0] : (Array.isArray(user.role) ? user.role[0] : ''))
+        const dest = roleRedirects[userRole] || '/admin/dashboard'
         navigate(dest, { replace: true })
       }
     }
@@ -98,7 +101,10 @@ export default function ForcePasswordChange() {
         cocina:      '/cocina',
         repartidor:  '/repartidor',
       }
-      const dest = roleRedirects[updatedUser?.role] || '/admin/dashboard'
+      const userRole = typeof updatedUser?.role === 'string'
+        ? updatedUser.role
+        : (Array.isArray(updatedUser?.roles) ? updatedUser.roles[0] : (Array.isArray(updatedUser?.role) ? updatedUser.role[0] : ''))
+      const dest = roleRedirects[userRole] || '/admin/dashboard'
       navigate(dest, { replace: true })
     } catch (err) {
       const apiMsg = err.response?.data?.message 

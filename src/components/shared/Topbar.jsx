@@ -415,33 +415,40 @@ export default function Topbar({ onToggleSidebar }) {
             border: `1px solid ${borderSubtle}`,
           }}
         >
-          <div 
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shadow-xs shrink-0"
-            style={{
-              backgroundColor: colorPrimario,
-              color: primaryBtnText
-            }}
-          >
-            {user?.role === 'super_admin' ? 'S' : (user?.role === 'gerente' ? 'G' : 'A')}
-          </div>
-          <div className="hidden sm:flex flex-col text-left">
-            <span 
-              className="text-[11px] font-bold leading-tight tracking-wide"
-              style={{ color: textColor }}
-            >
-              {user?.name || user?.nombre || user?.username || 'Usuario'}
-            </span>
-            <span 
-              className="text-[8px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded inline-block text-center w-fit mt-0.5 leading-none shadow-2xs"
-              style={{
-                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
-                color: textMuted,
-                border: `1px solid ${borderSubtle}`
-              }}
-            >
-              {user?.role === 'super_admin' ? 'SUPER ADMIN' : (user?.role === 'gerente' ? 'GERENTE' : 'ADMIN')}
-            </span>
-          </div>
+          {(() => {
+            const userRole = typeof user?.role === 'string' ? user.role : (Array.isArray(user?.roles) ? user.roles[0] : '')
+            return (
+              <>
+                <div 
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shadow-xs shrink-0"
+                  style={{
+                    backgroundColor: colorPrimario,
+                    color: primaryBtnText
+                  }}
+                >
+                  {userRole === 'super_admin' ? 'S' : (userRole === 'gerente' ? 'G' : 'A')}
+                </div>
+                <div className="hidden sm:flex flex-col text-left">
+                  <span 
+                    className="text-[11px] font-bold leading-tight tracking-wide"
+                    style={{ color: textColor }}
+                  >
+                    {user?.name || user?.nombre || user?.username || (typeof user?.email === 'string' ? user.email.split('@')[0] : 'Usuario')}
+                  </span>
+                  <span 
+                    className="text-[8px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded inline-block text-center w-fit mt-0.5 leading-none shadow-2xs"
+                    style={{
+                      backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+                      color: textMuted,
+                      border: `1px solid ${borderSubtle}`
+                    }}
+                  >
+                    {userRole === 'super_admin' ? 'SUPER ADMIN' : (userRole === 'gerente' ? 'GERENTE' : 'ADMIN')}
+                  </span>
+                </div>
+              </>
+            )
+          })()}
         </div>
         
         {/* Logout Button */}

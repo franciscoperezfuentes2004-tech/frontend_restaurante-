@@ -11,7 +11,8 @@ import { Bell, X, Send, Sparkles } from 'lucide-react'
 export default function AdminLayout() {
   const { user } = useAuth()
   const { bgBody, bgCard, bgInput, textColor, textMuted, colorPrimario, borderSubtle, modalShadow } = useTheme()
-  const esGerente = user?.role === 'gerente'
+  const userRole = typeof user?.role === 'string' ? user.role : (Array.isArray(user?.roles) ? user.roles[0] : '')
+  const esGerente = userRole === 'gerente' || (Array.isArray(user?.roles) && user.roles.includes('gerente'))
   const location = useLocation()
   
   // Estado para controlar el menú flotante en tablet/móvil

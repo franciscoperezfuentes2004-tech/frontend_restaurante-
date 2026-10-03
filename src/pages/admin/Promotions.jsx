@@ -46,7 +46,7 @@ const PROMO_TIME_SLOTS = (() => {
 })()
 
 function fmtTime(slot) {
-  if (!slot) return ''
+  if (!slot || typeof slot !== 'string') return ''
   const [hStr, mStr] = slot.split(':')
   const h24 = parseInt(hStr, 10)
   const m = mStr || '00'

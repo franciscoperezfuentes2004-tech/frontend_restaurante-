@@ -119,7 +119,10 @@ export default function Login() {
         cocina:      '/cocina',
         repartidor:  '/repartidor',
       }
-      const dest = roleRedirects[res.user.role] || '/login'
+      const userRole = typeof res.user?.role === 'string' 
+        ? res.user.role 
+        : (Array.isArray(res.user?.roles) ? res.user.roles[0] : (Array.isArray(res.user?.role) ? res.user.role[0] : ''))
+      const dest = roleRedirects[userRole] || '/login'
       navigate(dest)
     } catch (err) {
       setFailedCount(prev => prev + 1)

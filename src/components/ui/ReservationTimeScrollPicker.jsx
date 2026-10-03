@@ -18,7 +18,7 @@ const ALL_DAY_SLOTS = (() => {
 })()
 
 function formatTimeLabel(slot) {
-  if (!slot) return slot
+  if (!slot || typeof slot !== 'string') return slot
   const [hStr, mStr] = slot.split(':')
   const h24 = parseInt(hStr, 10)
   const m = mStr || '00'

@@ -65,19 +65,27 @@ export const isAuthenticated = () => {
 export const hasPermission = (permission) => {
   const user = getUser()
   if (!user) return false
-  if (user.role === 'super_admin' || user.role === 'admin') return true
-  const permissions = user.permissions || []
-  return permissions.includes(permission)
+  const userRole = typeof user.role === 'string' ? user.role : (Array.isArray(user.roles) ? user.roles[0] : '')
+  const userRoles = (typeof user.roles === 'string' ? user.roles.split(',') : (Array.isArray(user.roles) ? user.roles : (userRole ? [userRole] : []))) || []
+  if (userRole === 'super_admin' || userRole === 'admin' || userRoles.includes('super_admin') || userRoles.includes('admin')) return true
+
+  const rawPerms = user.permissions
+  const permissions = (typeof rawPerms === 'string' ? rawPerms.split(',') : (Array.isArray(rawPerms) ? rawPerms : [])) || []
+  return permissions.map(p => typeof p === 'string' ? p.trim() : p).includes(permission)
 }
 
 export const hasRole = (roles) => {
   const user = getUser()
-  if (!user || !user.role) return false
-  if (user.role === 'super_admin') return true
-  if (Array.isArray(roles)) {
-    return roles.includes(user.role)
-  }
-  return user.role === roles
+  if (!user || (!user.role && !user.roles)) return false
+  const userRole = typeof user.role === 'string' ? user.role : (Array.isArray(user.roles) ? user.roles[0] : '')
+  const userRoles = (typeof user.roles === 'string' ? user.roles.split(',') : (Array.isArray(user.roles) ? user.roles : (userRole ? [userRole] : []))) || []
+  if (userRole === 'super_admin' || userRoles.includes('super_admin')) return true
+
+  const rolesList = (typeof roles === 'string' ? roles.split(',') : (Array.isArray(roles) ? roles : [roles])) || []
+  const cleanRolesList = rolesList.map(r => typeof r === 'string' ? r.trim() : r)
+  const cleanUserRoles = userRoles.map(r => typeof r === 'string' ? r.trim() : r)
+
+  return cleanRolesList.some(r => cleanUserRoles.includes(r) || userRole === r)
 }
 
 export const activeSessions = () => client.get('/me/sessions')

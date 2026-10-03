@@ -81,20 +81,21 @@ export default function TimePicker({
 
   // Encontrar el índice del slot tolerando formatos de hora ("9:00" vs "09:00")
   const findSlotIndex = useCallback((val) => {
-    if (!val) return -1
+    if (!val || typeof val !== 'string') return -1
     const norm = val.length === 4 ? '0' + val : val
     const exact = displaySlots.indexOf(norm)
     if (exact !== -1) return exact
     const [h, m] = val.split(':').map(n => parseInt(n, 10))
     if (isNaN(h)) return -1
     return displaySlots.findIndex(s => {
+      if (typeof s !== 'string') return false
       const [sh, sm] = s.split(':').map(n => parseInt(n, 10))
       return sh === h && sm === (m || 0)
     })
   }, [displaySlots])
 
   const isSlotSelected = (slot, val) => {
-    if (!val) return false
+    if (!val || !slot || typeof val !== 'string' || typeof slot !== 'string') return false
     if (slot === val) return true
     const [sh, sm] = slot.split(':').map(n => parseInt(n, 10))
     const [vh, vm] = val.split(':').map(n => parseInt(n, 10))
@@ -229,7 +230,7 @@ export default function TimePicker({
 
 // Formatea "14:30" → "2:30 p. m."
 function formatTime(slot) {
-  if (!slot) return slot
+  if (!slot || typeof slot !== 'string') return slot
   const [hStr, mStr] = slot.split(':')
   const h24 = parseInt(hStr, 10)
   const m = mStr || '00'
