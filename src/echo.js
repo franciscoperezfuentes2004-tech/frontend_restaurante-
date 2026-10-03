@@ -7,8 +7,10 @@ window.Pusher = Pusher
 // Obtener el token de autenticación del usuario / mesero desde el almacenamiento local
 const getToken = () => {
   try {
-    let token = localStorage.getItem('token')
+    let token = localStorage.getItem('auth_token')
+      || localStorage.getItem('token')
       || localStorage.getItem('aurum_token')
+      || sessionStorage.getItem('auth_token')
       || sessionStorage.getItem('token')
       || sessionStorage.getItem('aurum_token')
 

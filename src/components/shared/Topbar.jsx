@@ -80,6 +80,7 @@ export default function Topbar({ onToggleSidebar }) {
       if (typeof logoutUser === 'function') {
         try { logoutUser() } catch (e) {}
       }
+      localStorage.removeItem('auth_token')
       localStorage.removeItem('token')
       localStorage.clear()
       sessionStorage.clear()

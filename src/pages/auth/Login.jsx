@@ -99,6 +99,9 @@ export default function Login() {
     setLoading(true)
     try {
       const res = await login(email, password)
+      if (res?.token) {
+        localStorage.setItem('auth_token', res.token)
+      }
       loginUser(res.user)
 
       // Evaluar si se requiere cambio forzado de contraseña temporal

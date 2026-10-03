@@ -1,13 +1,15 @@
 import axios from 'axios'
 
-axios.defaults.withCredentials = true;
+axios.interceptors.request.use(config => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
-  withXSRFToken: true,
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -26,8 +28,10 @@ client.interceptors.request.use(
         return config
       }
 
-      let token = localStorage.getItem('aurum_token') 
+      let token = localStorage.getItem('auth_token')
+        || localStorage.getItem('aurum_token') 
         || localStorage.getItem('token')
+        || sessionStorage.getItem('auth_token')
         || sessionStorage.getItem('aurum_token')
         || sessionStorage.getItem('token')
 
@@ -65,6 +69,7 @@ client.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !isBroadcasting) {
+      localStorage.removeItem('auth_token')
       localStorage.removeItem('aurum_user')
       // Rutas públicas — no redirigir al login
       const publicPaths = ['/', '/menu', '/login']

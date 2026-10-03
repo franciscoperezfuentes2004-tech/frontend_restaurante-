@@ -19,12 +19,14 @@ export const login = async (email, password) => {
   const cleanEmail = (email || '').trim()
   const cleanPassword = (password || '').trim()
 
-  await getCsrfCookie()
-
   const response = await client.post('/login', {
     email: cleanEmail,
     password: cleanPassword
   })
+
+  if (response?.data?.token) {
+    localStorage.setItem('auth_token', response.data.token)
+  }
 
   const { user } = response.data
 
@@ -41,6 +43,7 @@ export const logout = async () => {
   } catch (err) {
     // Ignorar errores durante logout
   } finally {
+    localStorage.removeItem('auth_token')
     localStorage.removeItem('aurum_user')
     window.location.href = '/login'
   }

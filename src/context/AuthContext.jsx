@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
         })
         .catch(() => {
           setUser(null)
+          localStorage.removeItem('auth_token')
           localStorage.removeItem('aurum_user')
         })
         .finally(() => setLoading(false))
@@ -34,6 +35,7 @@ export function AuthProvider({ children }) {
   }
 
   const logoutUser = () => {
+    localStorage.removeItem('auth_token')
     setUser(null)
     serviceLogout()
   }
