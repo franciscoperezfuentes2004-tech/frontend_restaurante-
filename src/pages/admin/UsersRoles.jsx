@@ -673,7 +673,7 @@ export default function UsersRoles() {
               <div className="animate-shimmer rounded-lg h-12 w-full" />
             </div>
           ) : (
-            <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+            <div className="overflow-x-auto w-full">
             <Table className="min-w-[900px]" shadow="shadow-none" headers={[ 
                 'Usuario',
                 'Correo Electrónico',

@@ -948,9 +948,9 @@ export default function Reports() {
                 {generatedReport.data?.headers && (
                   <div className="rounded-2xl p-4 mt-4 space-y-4" style={{ backgroundColor: bgSubcard, border: `1px solid ${borderSubtle}` }}>
                     <div className="rounded-2xl border transition-colors duration-200 overflow-hidden w-full" style={{ backgroundColor: bgSubcard, borderColor: borderSubtle }}>
-                    <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+                    <div className="overflow-x-auto w-full">
                       <table className="w-full text-left border-collapse min-w-[900px]">
-                          <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard }}>
+                          <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard, borderBottom: `1.5px solid ${borderSubtle}` }}>
                             <tr className="text-theme-text text-[10px] font-extrabold uppercase tracking-wider" style={{ backgroundColor: bgSubcard }}>
                               {generatedReport.data.headers.map((h, i) => (
                                 <th key={i} className="pb-3.5 pt-3.5 px-4 text-left">{h}</th>
@@ -1196,9 +1196,9 @@ export default function Reports() {
                     <div className="animate-shimmer rounded-lg h-12 w-full" />
                   </div>
                 ) : (
-                  <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left border-collapse min-w-[900px]">
-                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard }}>
+                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard, borderBottom: `1.5px solid ${borderSubtle}` }}>
                         <tr className="text-theme-text text-[10px] font-extrabold uppercase tracking-wider" style={{ backgroundColor: bgSubcard }}>
                           <th className="pb-3.5 pt-3.5 px-4">ID</th>
                           <th className="pb-3.5 pt-3.5 px-4">Nombre del Reporte</th>
@@ -1370,9 +1370,9 @@ export default function Reports() {
                     <div className="animate-shimmer rounded-lg h-12 w-full" />
                   </div>
                 ) : (
-                  <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left border-collapse min-w-[900px]">
-                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard }}>
+                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard, borderBottom: `1.5px solid ${borderSubtle}` }}>
                         <tr className="text-theme-text text-[10px] font-extrabold uppercase tracking-wider" style={{ backgroundColor: bgSubcard }}>
                           <th className="pb-3.5 pt-3.5 px-4">Nombre de la Programación</th>
                           <th className="pb-3.5 pt-3.5 px-4">Frecuencia de Envío</th>
@@ -1628,9 +1628,9 @@ export default function Reports() {
 
               {viewModalReport.data?.headers && (
                 <div className="bg-theme-surface rounded-xl shadow w-full">
-                  <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+                  <div className="overflow-x-auto w-full shadow-sm rounded-xl border transition-colors" style={{ borderColor: borderSubtle }}>
                     <table className="w-full text-left border-collapse min-w-[900px]">
-                    <thead className="bg-theme-card">
+                    <thead className="bg-theme-card" style={{ borderBottom: `1.5px solid ${borderSubtle}` }}>
                       <tr className="bg-theme-card">
                         {viewModalReport.data.headers.map((h, i) => (
                           <th key={i} className="text-theme-text-muted text-xs uppercase font-semibold tracking-wider px-4 py-3 text-left">{h}</th>

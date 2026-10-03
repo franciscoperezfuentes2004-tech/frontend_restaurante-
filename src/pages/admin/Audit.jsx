@@ -343,7 +343,7 @@ export default function Audit() {
         </div>
 
         <div className="space-y-4 mt-6">
-          <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+          <div className="overflow-x-auto w-full">
           <Table className="min-w-[900px]" shadow="shadow-none" headers={[ 
               'Fecha', 
               'Usuario', 

@@ -570,7 +570,7 @@ export default function Suppliers() {
               <div className="animate-shimmer rounded-lg h-12 w-full" />
             </div>
           ) : (
-            <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+            <div className="overflow-x-auto w-full">
               <Table className="min-w-[900px]" shadow="shadow-none" headers={['Empresa / Contacto', 'Especialidad', 'Teléfono', 'Correo Electrónico', 'Días de Entrega', 'Estado', 'Acciones']}>
               {currentSuppliers.map((sup, index) => {
                 const delayClass = `delay-${Math.min(index + 1, 5)}`

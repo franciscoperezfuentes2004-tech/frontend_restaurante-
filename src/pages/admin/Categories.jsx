@@ -616,7 +616,7 @@ export default function Categories() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+              <div className="overflow-x-auto w-full">
                 <Table shadow="none" className="min-w-[700px]" headers={['Categoría', 'Días', 'Horario', 'Platillos', 'Estado', 'Acciones']}>
                 {currentCategories.map((category) => (
                   <tr key={category.id} className="h-16 border-b transition-colors duration-150" style={{ backgroundColor: 'var(--theme-surface)', borderColor: borderSubtle }}>

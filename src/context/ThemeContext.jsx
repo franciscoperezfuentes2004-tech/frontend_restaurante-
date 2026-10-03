@@ -197,8 +197,8 @@ export function ThemeProvider({ children }) {
       const themeTextMuted = isLight ? '#475569' : 'rgba(241,245,249,0.6)'
       const themeTextSubtle = isLight ? '#64748b' : 'rgba(241,245,249,0.4)'
       
-      const themeBorder = isLight ? '#CBD5E1' : 'rgba(255, 255, 255, 0.20)'
-      const themeBorderSubtle = isLight ? '#C5CBD5' : 'rgba(255, 255, 255, 0.16)'
+      const themeBorder = isLight ? '#CBD5E1' : 'rgba(255, 255, 255, 0.12)'
+      const themeBorderSubtle = isLight ? '#C5CBD5' : 'rgba(255, 255, 255, 0.08)'
 
     document.body.style.backgroundColor = themeBg
 
@@ -318,6 +318,7 @@ export function ThemeProvider({ children }) {
         bgDropdown: '#FFFFFF',
         modalShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         dropdownShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        border: '#CBD5E1',
         borderSubtle: 'rgba(0, 0, 0, 0.07)',
         borderFocus: colorPrimario,
         textColor: '#0f172a',
@@ -354,6 +355,7 @@ export function ThemeProvider({ children }) {
       bgDropdown: darkCardTone,
       modalShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
       dropdownShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+      border: 'rgba(255, 255, 255, 0.12)',
       borderSubtle: 'rgba(255, 255, 255, 0.08)',
       borderFocus: colorPrimario,
       textColor: '#F1F5F9',
@@ -395,7 +397,8 @@ export function useTheme() {
       bgModal: '#1C1917',
       bgInput: 'rgb(13,10,8)',
       bgDropdown: 'rgb(13,10,8)',
-      borderSubtle: 'rgb(3,0,0)',
+      border: 'rgba(255, 255, 255, 0.12)',
+      borderSubtle: 'rgba(255, 255, 255, 0.08)',
       textColor: '#F1F5F9',
       textMuted: 'rgba(241,245,249,0.6)',
       textSubtle: 'rgba(241,245,249,0.4)',

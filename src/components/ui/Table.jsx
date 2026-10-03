@@ -8,8 +8,8 @@ export default function Table({
   className = '',
   shadow = 'shadow-md'
 }) {
-  const { bgSubcard, border, borderSubtle, textMuted } = useTheme()
-  const activeBorder = border || 'var(--theme-border, #CBD5E1)'
+  const { bgSubcard, border, borderSubtle, textMuted, isLight } = useTheme()
+  const activeBorder = border || borderSubtle || (isLight ? '#CBD5E1' : 'rgba(255, 255, 255, 0.12)')
 
   return (
     <div 

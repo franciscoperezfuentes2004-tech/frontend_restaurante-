@@ -572,7 +572,7 @@ export default function Ingredients() {
                 <div className="animate-shimmer rounded-lg h-12 w-full" />
               </div>
             ) : (
-              <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200 dark:border-white/10">
+              <div className="overflow-x-auto w-full">
                 <Table className="min-w-[900px]" shadow="shadow-none" headers={['Nombre del Ingrediente', 'Categoría', 'Unidad de Medida', 'Stock Actual', 'Proveedor Principal', 'Acciones']}>
                 {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => {
                   const item = currentIngredients[index]

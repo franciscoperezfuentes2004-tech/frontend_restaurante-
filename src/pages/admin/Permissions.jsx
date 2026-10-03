@@ -791,9 +791,9 @@ export default function Permissions() {
             </div>
 
             {/* Tabla Compacta de Usuarios */}
-            <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200 mt-4">
+            <div className="overflow-x-auto w-full shadow-sm rounded-xl border transition-colors mt-4" style={{ borderColor: borderSubtle }}>
               <table className="w-full text-xs text-theme-text border-collapse min-w-[1000px]">
-                  <thead className="text-theme-text-muted text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: bgSubcard }}>
+                  <thead className="text-theme-text-muted text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: bgSubcard, borderBottom: `1.5px solid ${borderSubtle}` }}>
                     <tr>
                       <th className="px-5 py-3.5 text-left">Empleado</th>
                       <th className="px-5 py-3.5 text-left">Correo Electrónico</th>

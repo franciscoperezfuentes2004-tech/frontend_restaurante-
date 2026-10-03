@@ -663,7 +663,7 @@ export default function Payments() {
             </div>
 
             <div className="space-y-4 mt-4">
-              <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+              <div className="overflow-x-auto w-full">
                 <Table className="min-w-[900px]" shadow="shadow-none" headers={['Folio', 'Cliente', 'Método', 'Monto', 'Fecha', 'Estado', 'Acciones']}>
                 {currentPayments?.map((pay, index) => {
                   const normMethod = (pay.payment_method || 'cash').toLowerCase()

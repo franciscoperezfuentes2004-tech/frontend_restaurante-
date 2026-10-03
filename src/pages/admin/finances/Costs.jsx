@@ -34,22 +34,29 @@ function CostsTooltip({ active, payload }) {
   const data = payload[0].payload
   const label = data.semana || data.mes || data.label || 'Semana'
   return (
-    <div className="bg-theme-card border border-[var(--theme-card)] rounded-xl px-4 py-3 shadow-xl space-y-2">
-      <p className="text-theme-text-muted text-xs font-bold">{label}</p>
+    <div 
+      className="rounded-xl px-4 py-3 shadow-xl space-y-2 border transition-colors backdrop-blur-md"
+      style={{
+        backgroundColor: 'var(--theme-surface)',
+        borderColor: 'var(--theme-border-subtle)',
+        color: 'var(--theme-text)'
+      }}
+    >
+      <p className="text-xs font-bold" style={{ color: 'var(--theme-text-muted)' }}>{label}</p>
       <div className="space-y-1.5">
         <div className="flex items-center gap-6 justify-between">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-theme-text-muted text-[11px]">Ingresos:</span>
+            <span className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>Ingresos:</span>
           </div>
-          <span className="text-emerald-400 font-extrabold text-xs">{fmt(data.ingresos)}</span>
+          <span className="text-emerald-500 font-extrabold text-xs">{fmt(data.ingresos)}</span>
         </div>
         <div className="flex items-center gap-6 justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500" />
-            <span className="text-theme-text-muted text-[11px]">Costos:</span>
+            <span className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>Costos:</span>
           </div>
-          <span className="text-rose-400 font-extrabold text-xs">{fmt(data.costos)}</span>
+          <span className="text-rose-500 font-extrabold text-xs">{fmt(data.costos)}</span>
         </div>
       </div>
     </div>
@@ -516,11 +523,11 @@ export default function Costs() {
                     </div>
                   ) : (
                     <>
-                      <div className="w-full bg-white rounded-xl p-4 pb-6 shadow-sm border border-slate-100 mt-4">
+                      <div className="w-full rounded-xl p-2 pb-4 mt-2 transition-colors duration-200">
                         <ResponsiveContainer width="100%" height={320}>
                           <AreaChart
                             data={tendenciaSemanas}
-                            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+                            margin={{ top: 10, right: 10, left: -10, bottom: 10 }}
                           >
                             <defs>
                               <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
@@ -532,41 +539,41 @@ export default function Costs() {
                                 <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                               </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke={isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.05)'} vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'} vertical={false} />
                             <XAxis 
                               dataKey="semana" 
-                              stroke={isLight ? 'var(--theme-text-muted)' : 'rgba(255,255,255,0.3)'} 
-                              fontSize={10} 
+                              tick={{ fill: isLight ? '#475569' : 'rgba(255,255,255,0.5)', fontSize: 11 }} 
                               tickLine={false} 
                               axisLine={false}
+                              dy={6}
                             />
                             <YAxis 
-                              stroke={isLight ? 'var(--theme-text-muted)' : 'rgba(255,255,255,0.3)'} 
-                              fontSize={10} 
+                              tick={{ fill: isLight ? '#475569' : 'rgba(255,255,255,0.5)', fontSize: 11 }} 
                               tickLine={false} 
                               axisLine={false}
-                              tickFormatter={(val) => `$${(val / 1000)}k`}
+                              tickFormatter={(val) => `$${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
+                              width={window.innerWidth < 768 ? 40 : 55}
                             />
                             <Tooltip content={<CostsTooltip />} />
                             <Area 
                               type="monotone" 
                               dataKey="costos" 
                               stroke="#EF4444" 
-                              strokeWidth={3}
+                              strokeWidth={2.5}
                               fillOpacity={1}
                               fill="url(#colorCostos)"
                               dot={false}
-                              activeDot={{ r: 6, strokeWidth: 0, fill: '#EF4444' }}
+                              activeDot={{ r: 5, strokeWidth: 2, stroke: isLight ? '#ffffff' : '#1C1917', fill: '#EF4444' }}
                             />
                             <Area 
                               type="monotone" 
                               dataKey="ingresos" 
                               stroke="#10B981" 
-                              strokeWidth={3}
+                              strokeWidth={2.5}
                               fillOpacity={1}
                               fill="url(#colorIngresos)"
                               dot={false}
-                              activeDot={{ r: 6, strokeWidth: 0, fill: '#10B981' }}
+                              activeDot={{ r: 5, strokeWidth: 2, stroke: isLight ? '#ffffff' : '#1C1917', fill: '#10B981' }}
                             />
                           </AreaChart>
                         </ResponsiveContainer>
@@ -603,9 +610,9 @@ export default function Costs() {
             <div className="mt-4 space-y-4">
               <div className="rounded-2xl border-[1.5px] transition-all duration-200 overflow-hidden w-full shadow-lg" style={{ borderColor: borderSubtle }}>
                 <div className="relative">
-                  <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left border-collapse min-w-[900px]">
-                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard }}>
+                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard, borderBottom: `1.5px solid ${borderSubtle}` }}>
                         <tr className="text-theme-text text-[10px] font-extrabold uppercase tracking-wider" style={{ backgroundColor: bgSubcard }}>
                           <th className="pb-3.5 pt-3.5 px-4">Ingrediente</th>
                           <th className="pb-3.5 pt-3.5 px-4">Categoría</th>
@@ -737,9 +744,9 @@ export default function Costs() {
             <div className="mt-4 space-y-4">
               <div className="rounded-2xl border-[1.5px] transition-all duration-200 overflow-hidden w-full shadow-lg" style={{ borderColor: borderSubtle }}>
                 <div className="relative">
-                  <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left border-collapse min-w-[900px]">
-                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard }}>
+                      <thead className="sticky top-0 z-10" style={{ backgroundColor: bgSubcard, borderBottom: `1.5px solid ${borderSubtle}` }}>
                         <tr className="text-theme-text text-[10px] font-extrabold uppercase tracking-wider" style={{ backgroundColor: bgSubcard }}>
                           <th className="pb-3.5 pt-3.5 px-4">Platillo</th>
                           <th className="pb-3.5 pt-3.5 px-4">Costo ingredientes</th>

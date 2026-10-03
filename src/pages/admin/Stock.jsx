@@ -850,7 +850,7 @@ export default function Stock() {
                       <div className="animate-shimmer rounded-xl h-12 w-full" />
                     </div>
                   ) : (
-                    <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+                    <div className="overflow-x-auto w-full">
                       <Table className="min-w-[900px]" shadow="shadow-none" headers={['Ingrediente', 'Categoría', 'Unidad', 'Existencia', 'Stock Mínimo', 'Estado', 'Proveedor', 'Última Actualización', 'Acciones']}>
                       {currentStock.map((item, index) => {
                         const isLow = item.status === 'stock_bajo'
@@ -1202,7 +1202,7 @@ export default function Stock() {
                 <div className="animate-shimmer rounded-xl h-12 w-full" />
               </div>
             ) : (
-              <div className="overflow-x-auto w-full shadow-sm rounded-xl border border-slate-200">
+              <div className="overflow-x-auto w-full">
                 <Table className="min-w-[900px]" shadow="shadow-none" headers={['Ingrediente', 'Tipo', 'Cantidad', 'Costo / Unidad', 'Proveedor', 'Notas', 'Registrado por', 'Fecha']}>
                 {currentMovements.map((m, index) => {
                   const isEntrada = m.type === 'entrada'
