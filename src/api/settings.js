@@ -144,9 +144,8 @@ export const getConfiguracion = () =>
           || settings.delivery_radius_meters
           || 3000,
         active_notification_platform: admin.active_notification_platform ?? settings.active_notification_platform ?? config.active_notification_platform ?? 'none',
-        discord_webhook_url: admin.discord_webhook_url ?? settings.discord_webhook_url ?? config.discord_webhook_url ?? '',
-        telegram_bot_token: admin.telegram_bot_token ?? settings.telegram_bot_token ?? config.telegram_bot_token ?? '',
-        telegram_chat_id: admin.telegram_chat_id ?? settings.telegram_chat_id ?? config.telegram_chat_id ?? '',
+        discord_settings: admin.discord_settings ?? settings.discord_settings ?? config.discord_settings ?? {},
+        telegram_settings: admin.telegram_settings ?? settings.telegram_settings ?? config.telegram_settings ?? {},
       }
     }
   })

@@ -240,11 +240,13 @@ export default function Settings() {
   const [transferenciaTitular, setTransferenciaTitular] = useState('')
   const [savingPaymentMethods, setSavingPaymentMethods] = useState(false)
 
-  // Section 7 State: Integraciones de Notificaciones (Discord / Telegram)
+  // Section 7 State: Integraciones de Notificaciones Multi-Canal (Discord / Telegram)
   const [notificationPlatform, setNotificationPlatform] = useState('none')
-  const [discordWebhookUrl, setDiscordWebhookUrl] = useState('')
+  const [discordOrdersWebhook, setDiscordOrdersWebhook] = useState('')
+  const [discordReservationsWebhook, setDiscordReservationsWebhook] = useState('')
   const [telegramBotToken, setTelegramBotToken] = useState('')
-  const [telegramChatId, setTelegramChatId] = useState('')
+  const [telegramOrdersChatId, setTelegramOrdersChatId] = useState('')
+  const [telegramReservationsChatId, setTelegramReservationsChatId] = useState('')
   const [savingNotifications, setSavingNotifications] = useState(false)
 
   // Validaciones calculadas en tiempo real
@@ -487,16 +489,18 @@ export default function Settings() {
         }
       }
 
-      // Cargar Integraciones de Notificaciones (Discord / Telegram)
+      // Cargar Integraciones de Notificaciones Multi-Canal (Discord / Telegram)
       const loadedPlatform = d.active_notification_platform ?? d.activeNotificationPlatform ?? 'none'
-      const loadedDiscord = d.discord_webhook_url ?? d.discordWebhookUrl ?? ''
-      const loadedTelegramToken = d.telegram_bot_token ?? d.telegramBotToken ?? ''
-      const loadedTelegramChat = d.telegram_chat_id ?? d.telegramChatId ?? ''
-
       setNotificationPlatform(loadedPlatform)
-      setDiscordWebhookUrl(loadedDiscord)
-      setTelegramBotToken(loadedTelegramToken)
-      setTelegramChatId(loadedTelegramChat)
+
+      const ds = d.discord_settings || d.discordSettings || {}
+      setDiscordOrdersWebhook(ds.orders_webhook_url ?? ds.ordersWebhookUrl ?? d.discord_webhook_url ?? '')
+      setDiscordReservationsWebhook(ds.reservations_webhook_url ?? ds.reservationsWebhookUrl ?? '')
+
+      const ts = d.telegram_settings || d.telegramSettings || {}
+      setTelegramBotToken(ts.bot_token ?? ts.botToken ?? d.telegram_bot_token ?? '')
+      setTelegramOrdersChatId(ts.orders_chat_id ?? ts.ordersChatId ?? d.telegram_chat_id ?? '')
+      setTelegramReservationsChatId(ts.reservations_chat_id ?? ts.reservationsChatId ?? '')
     } catch (err) {
       console.error('Settings error:', err)
       setError('No se pudo cargar la configuración')
@@ -908,17 +912,29 @@ export default function Settings() {
         ...settings,
         active_notification_platform: notificationPlatform,
         activeNotificationPlatform: notificationPlatform,
-        discord_webhook_url: discordWebhookUrl ? discordWebhookUrl.trim() : null,
-        discordWebhookUrl: discordWebhookUrl ? discordWebhookUrl.trim() : null,
-        telegram_bot_token: telegramBotToken ? telegramBotToken.trim() : null,
-        telegramBotToken: telegramBotToken ? telegramBotToken.trim() : null,
-        telegram_chat_id: telegramChatId ? telegramChatId.trim() : null,
-        telegramChatId: telegramChatId ? telegramChatId.trim() : null,
+        discord_settings: {
+          orders_webhook_url: discordOrdersWebhook.trim(),
+          reservations_webhook_url: discordReservationsWebhook.trim(),
+        },
+        discordSettings: {
+          orders_webhook_url: discordOrdersWebhook.trim(),
+          reservations_webhook_url: discordReservationsWebhook.trim(),
+        },
+        telegram_settings: {
+          bot_token: telegramBotToken.trim(),
+          orders_chat_id: telegramOrdersChatId.trim(),
+          reservations_chat_id: telegramReservationsChatId.trim(),
+        },
+        telegramSettings: {
+          bot_token: telegramBotToken.trim(),
+          orders_chat_id: telegramOrdersChatId.trim(),
+          reservations_chat_id: telegramReservationsChatId.trim(),
+        },
       }
 
       await updateSettings(payload)
       setSettings(prev => ({ ...prev, ...payload }))
-      setToast({ message: 'Integración de notificaciones guardada correctamente', type: 'success' })
+      setToast({ message: 'Integraciones de notificaciones actualizadas correctamente', type: 'success' })
     } catch (err) {
       console.error('Error guardando configuración de notificaciones:', err)
       const errorMsg = err?.response?.data?.message || err?.message || 'Error al guardar configuración de notificaciones'
@@ -2234,28 +2250,52 @@ export default function Settings() {
                   <div className="flex items-center gap-2 pb-1 border-b border-black/5 dark:border-white/5">
                     <Link2 size={15} style={{ color: colorPrimario }} />
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: textColor }}>
-                      Configuración de Webhook de Discord
+                      Webhooks de Discord por evento
                     </span>
                   </div>
 
-                  <div className="w-full">
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
-                      URL del Webhook de Discord
-                    </label>
-                    <div className="relative">
-                      <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
-                      <input 
-                        type="url"
-                        value={discordWebhookUrl}
-                        onChange={(e) => setDiscordWebhookUrl(e.target.value)}
-                        placeholder="https://discord.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz..."
-                        style={{ color: textColor }}
-                        className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
-                      />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Webhook para Nuevos Pedidos (Cocina) */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Webhook para Nuevos Pedidos (Cocina)
+                      </label>
+                      <div className="relative">
+                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="url"
+                          value={discordOrdersWebhook}
+                          onChange={(e) => setDiscordOrdersWebhook(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/123456789/cocina..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Canal donde se notificarán los pedidos nuevos para la cocina.
+                      </p>
                     </div>
-                    <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
-                      Pega la URL del Webhook generada en Discord (Canal &gt; Ajustes &gt; Integraciones &gt; Webhooks).
-                    </p>
+
+                    {/* Webhook para Reservaciones (Recepción) */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Webhook para Reservaciones (Recepción)
+                      </label>
+                      <div className="relative">
+                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="url"
+                          value={discordReservationsWebhook}
+                          onChange={(e) => setDiscordReservationsWebhook(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/123456789/recepcion..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Canal donde se avisará de reservaciones confirmadas para recepción.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2271,50 +2311,71 @@ export default function Settings() {
                   <div className="flex items-center gap-2 pb-1 border-b border-black/5 dark:border-white/5">
                     <Send size={15} style={{ color: colorPrimario }} />
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: textColor }}>
-                      Configuración de Bot de Telegram
+                      Bot y Canales de Telegram por evento
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Token del Bot */}
-                    <div className="w-full">
-                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
-                        Token del Bot
-                      </label>
-                      <div className="relative">
-                        <Key size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
-                        <input 
-                          type="text"
-                          value={telegramBotToken}
-                          onChange={(e) => setTelegramBotToken(e.target.value)}
-                          placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..."
-                          style={{ color: textColor }}
-                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
-                        />
-                      </div>
-                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
-                        Token generado por @BotFather en Telegram.
-                      </p>
+                  {/* Token del Bot */}
+                  <div className="w-full">
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                      Token del Bot
+                    </label>
+                    <div className="relative">
+                      <Key size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                      <input 
+                        type="text"
+                        value={telegramBotToken}
+                        onChange={(e) => setTelegramBotToken(e.target.value)}
+                        placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..."
+                        style={{ color: textColor }}
+                        className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                      />
                     </div>
+                    <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                      Token generado por @BotFather en Telegram.
+                    </p>
+                  </div>
 
-                    {/* ID del Chat */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Chat ID de Pedidos */}
                     <div className="w-full">
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
-                        ID del Chat
+                        Chat ID de Pedidos
                       </label>
                       <div className="relative">
                         <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
                         <input 
                           type="text"
-                          value={telegramChatId}
-                          onChange={(e) => setTelegramChatId(e.target.value)}
-                          placeholder="-1001234567890 o @tu_canal"
+                          value={telegramOrdersChatId}
+                          onChange={(e) => setTelegramOrdersChatId(e.target.value)}
+                          placeholder="-1001234567890 o @cocina_pedidos"
                           style={{ color: textColor }}
                           className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
                         />
                       </div>
                       <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
-                        ID del grupo, canal o usuario para enviar mensajes.
+                        ID del grupo o chat de cocina para recibir pedidos.
+                      </p>
+                    </div>
+
+                    {/* Chat ID de Reservaciones */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Chat ID de Reservaciones
+                      </label>
+                      <div className="relative">
+                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramReservationsChatId}
+                          onChange={(e) => setTelegramReservationsChatId(e.target.value)}
+                          placeholder="-1009876543210 o @recepcion_reservas"
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        ID del grupo o chat de recepción para nuevas reservaciones.
                       </p>
                     </div>
                   </div>
