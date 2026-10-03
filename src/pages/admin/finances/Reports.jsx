@@ -1982,7 +1982,7 @@ export default function Reports() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" size={14} />
                     <input
                       type="email"
-                      placeholder="ejemplo@restauranteaurum.com"
+                      placeholder="ejemplo@restaurante.com"
                       value={recipientEmailInput}
                       onChange={(e) => {
                         setRecipientEmailInput(e.target.value)

@@ -367,7 +367,7 @@ export default function Suppliers() {
     const worksheet = XLSX.utils.json_to_sheet(data)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, "Proveedores")
-    XLSX.writeFile(workbook, `aurum_proveedores_${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.writeFile(workbook, `proveedores_${new Date().toISOString().split('T')[0]}.xlsx`)
     setToast({ message: "Directorio de proveedores exportado a Excel correctamente", type: "success" })
   }
 
@@ -400,7 +400,7 @@ export default function Suppliers() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.setAttribute("href", url)
-    link.setAttribute("download", `aurum_proveedores_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `proveedores_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

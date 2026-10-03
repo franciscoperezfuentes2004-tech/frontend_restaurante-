@@ -467,7 +467,7 @@ export default function Reviews() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.setAttribute("href", url)
-    link.setAttribute("download", `aurum_reseñas_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `resenas_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -496,7 +496,7 @@ export default function Reviews() {
     const ws = XLSX.utils.json_to_sheet(data)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Reseñas')
-    const fileName = `aurum_reseñas_${new Date().toISOString().split('T')[0]}.xlsx`
+    const fileName = `resenas_${new Date().toISOString().split('T')[0]}.xlsx`
     XLSX.writeFile(wb, fileName)
 
     setToast({ message: "Reseñas exportadas en Excel correctamente", type: "success" })

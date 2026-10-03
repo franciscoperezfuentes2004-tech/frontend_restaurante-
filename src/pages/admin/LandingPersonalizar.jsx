@@ -131,7 +131,7 @@ export default function LandingPersonalizar() {
   }
 
   // 1. Contenedor: Portada Principal
-  const [heroTitle, setHeroTitle] = useState('RESTAURANTE AURUM')
+  const [heroTitle, setHeroTitle] = useState('RESTAURANTE')
   const [heroDescription, setHeroDescription] = useState('UNA EXPERIENCIA GASTRONÓMICA QUE DESPIERTA TODOS LOS SENTIDOS')
   const [heroImage, setHeroImage] = useState('/aurum_hero_dish.png')
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false)
@@ -241,7 +241,7 @@ export default function LandingPersonalizar() {
   // 3. Contenedor: Sección Delivery
   const [deliverySeccion, setDeliverySeccion] = useState({
     labelSuperior: 'SERVICIO A DOMICILIO',
-    tituloPrincipal: 'LLEVAMOS LA EXPERIENCIA AURUM HASTA TU HOGAR',
+    tituloPrincipal: 'LLEVAMOS LA EXPERIENCIA HASTA TU HOGAR',
     descripcion: 'Entrega a domicilio con nuestros repartidores propios en 30-45 minutos. También puedes pasar a recoger tu pedido.',
     imagen: '',
     imagenTitulo: '',
@@ -333,7 +333,7 @@ export default function LandingPersonalizar() {
   // 6. Contenedor: Sección Nuestra Historia
   const [historiaConfig, setHistoriaConfig] = useState({
     titulo: 'Más de 15 años creando experiencias inolvidables',
-    descripcion: 'Fundado frente a la emblemática bahía de Acapulco, Aurum nació de la pasión por fusionar la alta cocina contemporánea con el vibrante sabor de la costa mexicana. Cada platillo es diseñado por nuestro chef para contar una historia de calidad, frescura y sabor insuperable.',
+    descripcion: 'Nacimos de la pasión por fusionar la alta cocina contemporánea con el vibrante sabor de la gastronomía de calidad. Cada platillo es diseñado por nuestro chef para contar una historia de excelencia, frescura y sabor insuperable.',
     anioFundacion: 2009,
     imagenFondo: null,
     caracteristicas: [
@@ -418,7 +418,7 @@ export default function LandingPersonalizar() {
       const d = res.data || {}
       setRestLogo(d.logo_url || '')
       setRestDesc(d.description || '')
-      setHeroTitle(d.hero_title || 'RESTAURANTE AURUM')
+      setHeroTitle(d.hero_title || 'RESTAURANTE')
       setHeroDescription(d.hero_description || '')
       setHeroImage(d.hero_image || '/aurum_hero_dish.png')
       setUseCarousel(Boolean(d.use_carousel))
@@ -1885,7 +1885,7 @@ export default function LandingPersonalizar() {
                         border: '1px solid var(--theme-border-subtle)',
                         borderRadius: '0.5rem'
                       }}
-                      placeholder="RESTAURANTE AURUM"
+                      placeholder="RESTAURANTE"
                     />
                     {(portadaTouched.hero_title || portadaSubmitted) && portadaErrors.hero_title && (
                       <p className="text-red-500 text-xs mt-1 animate-fadeIn font-medium">
@@ -4090,7 +4090,7 @@ export default function LandingPersonalizar() {
                         borderColor: (deliveryTouched.tituloPrincipal || deliverySubmitted) && deliveryErrors.tituloPrincipal ? '#ef4444' : 'var(--theme-border-subtle)',
                         borderRadius: '0.5rem'
                       }}
-                      placeholder="Llevamos la experiencia Aurum hasta tu hogar"
+                      placeholder="Llevamos la experiencia hasta tu hogar"
                     />
                     {(deliveryTouched.tituloPrincipal || deliverySubmitted) && deliveryErrors.tituloPrincipal && (
                       <p className="text-red-500 text-[11px] mt-1 animate-fadeIn font-medium">

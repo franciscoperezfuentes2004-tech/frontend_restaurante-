@@ -553,7 +553,7 @@ export default function Stock() {
     const worksheet = XLSX.utils.json_to_sheet(data)
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, "Existencias")
-    XLSX.writeFile(workbook, `aurum_existencias_${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.writeFile(workbook, `existencias_${new Date().toISOString().split('T')[0]}.xlsx`)
     setToast({ message: "Lista de existencias exportada a Excel correctamente", type: "success" })
   }
 
@@ -587,7 +587,7 @@ export default function Stock() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.setAttribute("href", url)
-    link.setAttribute("download", `aurum_existencias_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `existencias_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

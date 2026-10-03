@@ -673,7 +673,7 @@ export default function Delivery() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Entregas')
 
-    const fileName = `delivery_aurum_${new Date().toISOString().split('T')[0]}.xlsx`
+    const fileName = `delivery_${new Date().toISOString().split('T')[0]}.xlsx`
     XLSX.writeFile(wb, fileName)
   }
 
@@ -697,7 +697,7 @@ export default function Delivery() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement("a")
     link.href = URL.createObjectURL(blob)
-    link.setAttribute("download", `delivery_aurum_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `delivery_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -713,7 +713,7 @@ export default function Delivery() {
       const doc = new jsPDF()
 
       doc.setFontSize(16)
-      doc.text('Monitoreo de Entregas Delivery - Aurum', 14, 15)
+      doc.text('Monitoreo de Entregas Delivery', 14, 15)
 
       doc.setFontSize(10)
       doc.text(`Generado: ${new Date().toLocaleString('es-MX')}`, 14, 22)
@@ -736,7 +736,7 @@ export default function Delivery() {
         headStyles: { fillColor: [180, 83, 9] }
       })
 
-      doc.save(`delivery_aurum_${new Date().toISOString().split('T')[0]}.pdf`)
+      doc.save(`delivery_${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (err) {
       console.error('Error generating PDF:', err)
       window.print()
@@ -1648,7 +1648,7 @@ export default function Delivery() {
 
                 {/* Recuadro del Código QR Funcional */}
                 {(() => {
-                  const dispatchToken = detailItem.dispatch_token || detailItem.order?.dispatch_token || detailItem.folio || `AURUM-DEL-${detailItem.id}`
+                  const dispatchToken = detailItem.dispatch_token || detailItem.order?.dispatch_token || detailItem.folio || `DEL-${detailItem.id}`
                   return (
                     <div 
                       className="rounded-xl p-3 border shadow-sm flex items-center gap-3 mt-4"

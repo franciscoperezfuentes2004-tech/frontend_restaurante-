@@ -219,7 +219,7 @@ export default function Orders() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Pedidos')
 
-    const fileName = `pedidos_aurum_${new Date().toISOString().split('T')[0]}.xlsx`
+    const fileName = `pedidos_${new Date().toISOString().split('T')[0]}.xlsx`
     XLSX.writeFile(wb, fileName)
   }
 
@@ -263,7 +263,7 @@ export default function Orders() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement("a")
     link.href = URL.createObjectURL(blob)
-    link.setAttribute("download", `pedidos_aurum_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `pedidos_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -280,7 +280,7 @@ export default function Orders() {
       const doc = new jsPDF()
 
       doc.setFontSize(16)
-      doc.text('Historial de Pedidos - Aurum', 14, 15)
+      doc.text('Historial de Pedidos', 14, 15)
 
       doc.setFontSize(10)
       doc.text(`Fecha de exportación: ${new Date().toLocaleString('es-MX')}`, 14, 22)
@@ -321,7 +321,7 @@ export default function Orders() {
         headStyles: { fillStyle: 'f', fillColor: [30, 28, 46] }
       })
 
-      doc.save(`pedidos_aurum_${new Date().toISOString().split('T')[0]}.pdf`)
+      doc.save(`pedidos_${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (e) {
       console.error("PDF export error:", e)
       setToast({ message: "Error al generar PDF", type: "error" })

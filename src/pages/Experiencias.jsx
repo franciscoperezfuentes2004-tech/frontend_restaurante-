@@ -821,7 +821,7 @@ const Experiencias = () => {
                                   
                                   {lightbox.images[lightbox.index].testimonial.reply_text && (
                                     <div className={`mt-2 pt-3 border-t ${borderDefault}`}>
-                                      <span style={{ color: primaryColor }} className="text-[10px] font-bold uppercase tracking-widest block mb-1">Respuesta de AURUM</span>
+                                      <span style={{ color: primaryColor }} className="text-[10px] font-bold uppercase tracking-widest block mb-1">Respuesta del Restaurante</span>
                                       <p className={`text-xs ${textSubtitle} leading-relaxed font-normal`}>{lightbox.images[lightbox.index].testimonial.reply_text}</p>
                                     </div>
                                   )}

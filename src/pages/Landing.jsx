@@ -4098,7 +4098,7 @@ export default function Landing() {
                   <div>
                     <div className="text-left mb-6">
                       <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--theme-primary)] font-semibold block mb-1">
-                        Tu Experiencia AURUM
+                        Tu Experiencia Gastronómica
                       </span>
                       <h3 className="text-2xl font-bold text-[var(--theme-text)] font-serif">
                         Dejar una Reseña

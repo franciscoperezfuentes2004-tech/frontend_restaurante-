@@ -98,7 +98,7 @@ const MOCK_PLATILLOS_DEFAULT = [
   },
   {
     id: 'p3',
-    nombre: 'Hamburguesa Aurum Black Angus',
+    nombre: 'Hamburguesa Black Angus Especial',
     descripcion: '200g de carne Black Angus a la brasa, tocino crujiente, cebolla caramelizada al bourbon, queso cheddar maduro y papas rústicas.',
     precio: 245,
     precioOriginal: 275,

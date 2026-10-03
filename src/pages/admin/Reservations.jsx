@@ -822,7 +822,7 @@ export default function Reservations() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Reservaciones')
 
-    const fileName = `reservaciones_aurum_${new Date().toISOString().split('T')[0]}.xlsx`
+    const fileName = `reservaciones_${new Date().toISOString().split('T')[0]}.xlsx`
     XLSX.writeFile(wb, fileName)
   }
 
@@ -863,7 +863,7 @@ export default function Reservations() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement("a")
     link.href = URL.createObjectURL(blob)
-    link.setAttribute("download", `reservaciones_aurum_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `reservaciones_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -879,7 +879,7 @@ export default function Reservations() {
       const doc = new jsPDF()
 
       doc.setFontSize(16)
-      doc.text('Listado de Reservaciones - Aurum', 14, 15)
+      doc.text('Listado de Reservaciones', 14, 15)
 
       doc.setFontSize(10)
       doc.text(`Fecha de exportación: ${new Date().toLocaleString('es-MX')}`, 14, 22)
@@ -903,7 +903,7 @@ export default function Reservations() {
         headStyles: { fillColor: [180, 83, 9] }
       })
 
-      doc.save(`reservaciones_aurum_${new Date().toISOString().split('T')[0]}.pdf`)
+      doc.save(`reservaciones_${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (err) {
       console.error('Error generating PDF:', err)
       window.print()

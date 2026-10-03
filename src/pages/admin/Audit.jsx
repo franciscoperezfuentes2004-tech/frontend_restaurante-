@@ -141,7 +141,7 @@ export default function Audit() {
       const link = document.createElement('a')
       link.href = url
       const dateStr = new Date().toISOString().split('T')[0]
-      link.setAttribute('download', `aurum_bitacora_${dateStr}.${fmtLower === 'excel' ? 'csv' : 'csv'}`)
+      link.setAttribute('download', `bitacora_${dateStr}.${fmtLower === 'excel' ? 'csv' : 'csv'}`)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)

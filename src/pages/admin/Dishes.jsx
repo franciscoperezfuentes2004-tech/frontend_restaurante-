@@ -29,7 +29,7 @@ const getDishTheme = (index) => {
 export default function Dishes() {
   const { user } = useAuth()
   const esGerente = user?.role === 'gerente'
-  const { bgCard, bgSubcard, bgModal, bgInput, borderSubtle, cardShadow, textColor, textMuted, textSubtle, colorPrimario, primaryBtnText, isLight } = useTheme()
+  const { bgCard, bgSubcard, bgModal, bgInput, borderSubtle, cardShadow, textColor, textMuted, textSubtle, colorPrimario, primaryBtnText, isLight, restaurantName } = useTheme()
 
   const [dishes, setDishes] = useState([])
   const [categories, setCategories] = useState([])
@@ -437,7 +437,7 @@ export default function Dishes() {
     <div className="space-y-6 max-md:space-y-4 animate-fadeIn p-4 max-md:p-3 md:p-6 lg:p-8 font-sans">
       <PageHeader 
         title="Platillos" 
-        description="Agrega, edita y administra los platillos disponibles en el menú de Aurum."
+        description={`Agrega, edita y administra los platillos disponibles en el menú ${restaurantName ? `de ${restaurantName}` : 'del restaurante'}.`}
         action={!esGerente ? actionButton : (
           <span className="bg-blue-500/15 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-blue-500/10">
             👁 Modo solo lectura
