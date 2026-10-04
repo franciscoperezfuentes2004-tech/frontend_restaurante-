@@ -242,11 +242,18 @@ export default function Settings() {
 
   // Section 7 State: Integraciones de Notificaciones Multi-Canal (Discord / Telegram)
   const [notificationPlatform, setNotificationPlatform] = useState('none')
-  const [discordOrdersWebhook, setDiscordOrdersWebhook] = useState('')
   const [discordReservationsWebhook, setDiscordReservationsWebhook] = useState('')
+  const [discordSystemAlertsWebhook, setDiscordSystemAlertsWebhook] = useState('')
+  const [discordInventoryWebhook, setDiscordInventoryWebhook] = useState('')
+  const [discordCashCutsWebhook, setDiscordCashCutsWebhook] = useState('')
+  const [discordGeneralAdminWebhook, setDiscordGeneralAdminWebhook] = useState('')
+
   const [telegramBotToken, setTelegramBotToken] = useState('')
-  const [telegramOrdersChatId, setTelegramOrdersChatId] = useState('')
   const [telegramReservationsChatId, setTelegramReservationsChatId] = useState('')
+  const [telegramSystemAlertsChatId, setTelegramSystemAlertsChatId] = useState('')
+  const [telegramInventoryChatId, setTelegramInventoryChatId] = useState('')
+  const [telegramCashCutsChatId, setTelegramCashCutsChatId] = useState('')
+  const [telegramGeneralAdminChatId, setTelegramGeneralAdminChatId] = useState('')
   const [savingNotifications, setSavingNotifications] = useState(false)
 
   // Validaciones calculadas en tiempo real
@@ -494,13 +501,19 @@ export default function Settings() {
       setNotificationPlatform(loadedPlatform)
 
       const ds = d.discord_settings || d.discordSettings || {}
-      setDiscordOrdersWebhook(ds.orders_webhook_url ?? ds.ordersWebhookUrl ?? d.discord_webhook_url ?? '')
-      setDiscordReservationsWebhook(ds.reservations_webhook_url ?? ds.reservationsWebhookUrl ?? '')
+      setDiscordReservationsWebhook(ds.reservations ?? ds.reservations_webhook_url ?? '')
+      setDiscordSystemAlertsWebhook(ds.system_alerts ?? '')
+      setDiscordInventoryWebhook(ds.inventory ?? '')
+      setDiscordCashCutsWebhook(ds.cash_cuts ?? '')
+      setDiscordGeneralAdminWebhook(ds.general_admin ?? '')
 
       const ts = d.telegram_settings || d.telegramSettings || {}
       setTelegramBotToken(ts.bot_token ?? ts.botToken ?? d.telegram_bot_token ?? '')
-      setTelegramOrdersChatId(ts.orders_chat_id ?? ts.ordersChatId ?? d.telegram_chat_id ?? '')
-      setTelegramReservationsChatId(ts.reservations_chat_id ?? ts.reservationsChatId ?? '')
+      setTelegramReservationsChatId(ts.reservations ?? ts.reservations_chat_id ?? '')
+      setTelegramSystemAlertsChatId(ts.system_alerts ?? '')
+      setTelegramInventoryChatId(ts.inventory ?? '')
+      setTelegramCashCutsChatId(ts.cash_cuts ?? '')
+      setTelegramGeneralAdminChatId(ts.general_admin ?? '')
     } catch (err) {
       console.error('Settings error:', err)
       setError('No se pudo cargar la configuración')
@@ -913,22 +926,34 @@ export default function Settings() {
         active_notification_platform: notificationPlatform,
         activeNotificationPlatform: notificationPlatform,
         discord_settings: {
-          orders_webhook_url: discordOrdersWebhook.trim(),
-          reservations_webhook_url: discordReservationsWebhook.trim(),
+          reservations: discordReservationsWebhook.trim(),
+          system_alerts: discordSystemAlertsWebhook.trim(),
+          inventory: discordInventoryWebhook.trim(),
+          cash_cuts: discordCashCutsWebhook.trim(),
+          general_admin: discordGeneralAdminWebhook.trim(),
         },
         discordSettings: {
-          orders_webhook_url: discordOrdersWebhook.trim(),
-          reservations_webhook_url: discordReservationsWebhook.trim(),
+          reservations: discordReservationsWebhook.trim(),
+          system_alerts: discordSystemAlertsWebhook.trim(),
+          inventory: discordInventoryWebhook.trim(),
+          cash_cuts: discordCashCutsWebhook.trim(),
+          general_admin: discordGeneralAdminWebhook.trim(),
         },
         telegram_settings: {
           bot_token: telegramBotToken.trim(),
-          orders_chat_id: telegramOrdersChatId.trim(),
-          reservations_chat_id: telegramReservationsChatId.trim(),
+          reservations: telegramReservationsChatId.trim(),
+          system_alerts: telegramSystemAlertsChatId.trim(),
+          inventory: telegramInventoryChatId.trim(),
+          cash_cuts: telegramCashCutsChatId.trim(),
+          general_admin: telegramGeneralAdminChatId.trim(),
         },
         telegramSettings: {
           bot_token: telegramBotToken.trim(),
-          orders_chat_id: telegramOrdersChatId.trim(),
-          reservations_chat_id: telegramReservationsChatId.trim(),
+          reservations: telegramReservationsChatId.trim(),
+          system_alerts: telegramSystemAlertsChatId.trim(),
+          inventory: telegramInventoryChatId.trim(),
+          cash_cuts: telegramCashCutsChatId.trim(),
+          general_admin: telegramGeneralAdminChatId.trim(),
         },
       }
 
@@ -2255,31 +2280,10 @@ export default function Settings() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Webhook para Nuevos Pedidos (Cocina) */}
-                    <div className="w-full">
-                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
-                        Webhook para Nuevos Pedidos (Cocina)
-                      </label>
-                      <div className="relative">
-                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
-                        <input 
-                          type="url"
-                          value={discordOrdersWebhook}
-                          onChange={(e) => setDiscordOrdersWebhook(e.target.value)}
-                          placeholder="https://discord.com/api/webhooks/123456789/cocina..."
-                          style={{ color: textColor }}
-                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
-                        />
-                      </div>
-                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
-                        Canal donde se notificarán los pedidos nuevos para la cocina.
-                      </p>
-                    </div>
-
                     {/* Webhook para Reservaciones (Recepción) */}
                     <div className="w-full">
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
-                        Webhook para Reservaciones (Recepción)
+                        Reservaciones (Recepción)
                       </label>
                       <div className="relative">
                         <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
@@ -2287,13 +2291,97 @@ export default function Settings() {
                           type="url"
                           value={discordReservationsWebhook}
                           onChange={(e) => setDiscordReservationsWebhook(e.target.value)}
-                          placeholder="https://discord.com/api/webhooks/123456789/recepcion..."
+                          placeholder="https://discord.com/api/webhooks/..."
                           style={{ color: textColor }}
                           className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
                         />
                       </div>
                       <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
-                        Canal donde se avisará de reservaciones confirmadas para recepción.
+                        Avisos de nuevas reservaciones confirmadas.
+                      </p>
+                    </div>
+
+                    {/* Alertas del sistema */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Alertas del sistema
+                      </label>
+                      <div className="relative">
+                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="url"
+                          value={discordSystemAlertsWebhook}
+                          onChange={(e) => setDiscordSystemAlertsWebhook(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Errores del sistema o avisos técnicos.
+                      </p>
+                    </div>
+
+                    {/* Inventario y Stock */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Inventario y Stock
+                      </label>
+                      <div className="relative">
+                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="url"
+                          value={discordInventoryWebhook}
+                          onChange={(e) => setDiscordInventoryWebhook(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Avisos de insumos bajos o agotados.
+                      </p>
+                    </div>
+
+                    {/* Cortes de caja */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Cortes de caja
+                      </label>
+                      <div className="relative">
+                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="url"
+                          value={discordCashCutsWebhook}
+                          onChange={(e) => setDiscordCashCutsWebhook(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Resúmenes del cierre de turno.
+                      </p>
+                    </div>
+
+                    {/* General Admin */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        General Admin
+                      </label>
+                      <div className="relative">
+                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="url"
+                          value={discordGeneralAdminWebhook}
+                          onChange={(e) => setDiscordGeneralAdminWebhook(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Actividades generales de la administración.
                       </p>
                     </div>
                   </div>
@@ -2337,31 +2425,10 @@ export default function Settings() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Chat ID de Pedidos */}
-                    <div className="w-full">
-                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
-                        Chat ID de Pedidos
-                      </label>
-                      <div className="relative">
-                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
-                        <input 
-                          type="text"
-                          value={telegramOrdersChatId}
-                          onChange={(e) => setTelegramOrdersChatId(e.target.value)}
-                          placeholder="-1001234567890 o @cocina_pedidos"
-                          style={{ color: textColor }}
-                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
-                        />
-                      </div>
-                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
-                        ID del grupo o chat de cocina para recibir pedidos.
-                      </p>
-                    </div>
-
                     {/* Chat ID de Reservaciones */}
                     <div className="w-full">
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
-                        Chat ID de Reservaciones
+                        Reservaciones (Recepción)
                       </label>
                       <div className="relative">
                         <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
@@ -2369,13 +2436,97 @@ export default function Settings() {
                           type="text"
                           value={telegramReservationsChatId}
                           onChange={(e) => setTelegramReservationsChatId(e.target.value)}
-                          placeholder="-1009876543210 o @recepcion_reservas"
+                          placeholder="-1009876543210 o @recepcion"
                           style={{ color: textColor }}
                           className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
                         />
                       </div>
                       <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
-                        ID del grupo o chat de recepción para nuevas reservaciones.
+                        Avisos de nuevas reservaciones confirmadas.
+                      </p>
+                    </div>
+
+                    {/* Alertas del sistema */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Alertas del sistema
+                      </label>
+                      <div className="relative">
+                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramSystemAlertsChatId}
+                          onChange={(e) => setTelegramSystemAlertsChatId(e.target.value)}
+                          placeholder="-100..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Errores del sistema o avisos técnicos.
+                      </p>
+                    </div>
+
+                    {/* Inventario y Stock */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Inventario y Stock
+                      </label>
+                      <div className="relative">
+                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramInventoryChatId}
+                          onChange={(e) => setTelegramInventoryChatId(e.target.value)}
+                          placeholder="-100..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Avisos de insumos bajos o agotados.
+                      </p>
+                    </div>
+
+                    {/* Cortes de caja */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        Cortes de caja
+                      </label>
+                      <div className="relative">
+                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramCashCutsChatId}
+                          onChange={(e) => setTelegramCashCutsChatId(e.target.value)}
+                          placeholder="-100..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Resúmenes del cierre de turno.
+                      </p>
+                    </div>
+
+                    {/* General Admin */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        General Admin
+                      </label>
+                      <div className="relative">
+                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramGeneralAdminChatId}
+                          onChange={(e) => setTelegramGeneralAdminChatId(e.target.value)}
+                          placeholder="-100..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Actividades generales de la administración.
                       </p>
                     </div>
                   </div>
