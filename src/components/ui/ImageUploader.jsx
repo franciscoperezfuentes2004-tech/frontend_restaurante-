@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Upload, X, Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react'
 import { uploadImage } from '../../api/images'
 
@@ -13,6 +13,23 @@ export default function ImageUploader({
   const [error, setError]     = useState(null)
   const [preview, setPreview] = useState(value || null)
   const inputRef = useRef()
+  const objectUrlRef = useRef(null)
+
+  // Sincronizar preview con value externo cuando no hay un objectURL local activo
+  useEffect(() => {
+    if (!objectUrlRef.current) {
+      setPreview(value || null)
+    }
+  }, [value])
+
+  // Limpiar URL local al desmontar para evitar fugas de memoria
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+      }
+    }
+  }, [])
 
   const handleFile = async (file) => {
     if (!file) return
@@ -22,10 +39,16 @@ export default function ImageUploader({
       return
     }
 
-    // Preview inmediato
-    const reader = new FileReader()
-    reader.onload = (e) => setPreview(e.target.result)
-    reader.readAsDataURL(file)
+    // Revocar URL local previa si existía
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+      objectUrlRef.current = null
+    }
+
+    // Generar URL local válida para la vista previa
+    const localUrl = URL.createObjectURL(file)
+    objectUrlRef.current = localUrl
+    setPreview(localUrl)
 
     setLoading(true)
     setError(null)
@@ -45,6 +68,10 @@ export default function ImageUploader({
         errorMsg = err.response.data.message
       }
       setError(errorMsg)
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
       setPreview(value || null)
       if (inputRef.current) inputRef.current.value = ''
     } finally {
@@ -59,6 +86,10 @@ export default function ImageUploader({
   }
 
   const handleRemove = () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+      objectUrlRef.current = null
+    }
     setPreview(null)
     onChange(null)
     if (inputRef.current) inputRef.current.value = ''
