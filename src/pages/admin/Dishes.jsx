@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { Plus, Edit2, Trash2, Search, SlidersHorizontal, Copy, Check, Utensils, AlertCircle } from 'lucide-react'
 import Dropdown from '../../components/ui/Dropdown'
 import { useAuth } from '../../context/AuthContext'
@@ -689,18 +690,20 @@ export default function Dishes() {
         )}
       </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fadeIn">
-          {/* Backdrop click to close */}
-          <div className="fixed inset-0" onClick={() => setIsOpen(false)}></div>
-
-          {/* 2. CONTENEDOR DEL MODAL (Límite del 70% en móvil para no saturar, 85% en md) */}
+      {isOpen && createPortal(
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[9999] flex items-center justify-center p-4 md:p-6 animate-fadeIn"
+          onClick={() => setIsOpen(false)}
+        >
+          {/* 2. CONTENEDOR DEL MODAL */}
           <div 
-            className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[70vh] md:max-h-[85vh] flex flex-col overflow-hidden animate-fadeInUp z-10"
+            className="relative rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] md:max-h-[88vh] flex flex-col overflow-hidden animate-fadeInUp z-10 border text-left"
+            style={{ backgroundColor: bgCard, borderColor: borderSubtle }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Cabecera (Congelada) */}
             <div 
-              className="bg-blue-800 text-white p-4 shrink-0 flex justify-between items-center transition-colors"
+              className="text-white p-4 shrink-0 flex justify-between items-center transition-colors"
               style={{ backgroundColor: colorPrimario || '#1e40af' }}
             >
               <h2 className="font-bold text-lg text-white">
@@ -718,7 +721,10 @@ export default function Dishes() {
 
             {/* 3. FORMULARIO (Área de scroll interno) */}
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-5 md:p-6 space-y-6 custom-scrollbar bg-slate-50 dark:bg-zinc-950">
+              <div 
+                className="flex-1 overflow-y-auto p-5 md:p-6 space-y-6 custom-scrollbar"
+                style={{ backgroundColor: bgCard }}
+              >
                 <div>
                   <label className="block text-xs font-semibold tracking-wider mb-1.5 uppercase" style={{ color: textMuted }}>
                     Nombre del platillo *
@@ -1098,8 +1104,8 @@ export default function Dishes() {
 
               {/* Pie del modal con botones de guardar (Congelado) */}
               <div 
-                className="bg-white dark:bg-zinc-900 p-4 border-t border-slate-200 dark:border-zinc-800 shrink-0 flex justify-end gap-3"
-                style={{ borderColor: borderSubtle }}
+                className="p-4 border-t shrink-0 flex justify-end gap-3 transition-colors"
+                style={{ backgroundColor: bgCard, borderColor: borderSubtle }}
               >
                 <button 
                   type="button" 
@@ -1113,14 +1119,15 @@ export default function Dishes() {
                   type="submit"
                   disabled={submitting || !isFormValid}
                   style={{ backgroundColor: colorPrimario || '#1d4ed8', color: primaryBtnText || '#ffffff' }}
-                  className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-xl shadow-md transition-all cursor-pointer h-11 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="hover:opacity-90 text-white font-bold py-2 px-6 rounded-xl shadow-md transition-all cursor-pointer h-11 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? 'Guardando...' : (editingItem ? 'Guardar Cambios' : 'Guardar Platillo')}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {toast && (
