@@ -110,6 +110,27 @@ export const getConfiguracion = () =>
     const config = configRes.data || {}
     const settings = settingsRes.data || {}
     const admin = adminRes.data || {}
+
+    const parseNested = (val) => {
+      if (!val) return {}
+      if (typeof val === 'string') {
+        try { return JSON.parse(val) || {} } catch (e) { return {} }
+      }
+      return typeof val === 'object' ? val : {}
+    }
+
+    const discordSettings = {
+      ...parseNested(config.discord_settings),
+      ...parseNested(settings.discord_settings),
+      ...parseNested(admin.discord_settings),
+    }
+
+    const telegramSettings = {
+      ...parseNested(config.telegram_settings),
+      ...parseNested(settings.telegram_settings),
+      ...parseNested(admin.telegram_settings),
+    }
+
     return {
       data: {
         ...config,
@@ -144,8 +165,8 @@ export const getConfiguracion = () =>
           || settings.delivery_radius_meters
           || 3000,
         active_notification_platform: admin.active_notification_platform ?? settings.active_notification_platform ?? config.active_notification_platform ?? 'none',
-        discord_settings: admin.discord_settings ?? settings.discord_settings ?? config.discord_settings ?? {},
-        telegram_settings: admin.telegram_settings ?? settings.telegram_settings ?? config.telegram_settings ?? {},
+        discord_settings: discordSettings,
+        telegram_settings: telegramSettings,
       }
     }
   })

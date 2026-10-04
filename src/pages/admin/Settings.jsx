@@ -500,20 +500,26 @@ export default function Settings() {
       const loadedPlatform = d.active_notification_platform ?? d.activeNotificationPlatform ?? 'none'
       setNotificationPlatform(loadedPlatform)
 
-      const ds = d.discord_settings || d.discordSettings || {}
-      setDiscordReservationsWebhook(ds.reservations ?? ds.reservations_webhook_url ?? '')
-      setDiscordSystemAlertsWebhook(ds.system_alerts ?? '')
-      setDiscordInventoryWebhook(ds.inventory ?? '')
-      setDiscordCashCutsWebhook(ds.cash_cuts ?? '')
-      setDiscordGeneralAdminWebhook(ds.general_admin ?? '')
+      let ds = d.discord_settings ?? d.discordSettings ?? {}
+      if (typeof ds === 'string') {
+        try { ds = JSON.parse(ds) } catch (e) { ds = {} }
+      }
+      setDiscordReservationsWebhook(String(ds?.reservations ?? ds?.reservations_webhook_url ?? ''))
+      setDiscordSystemAlertsWebhook(String(ds?.system_alerts ?? ''))
+      setDiscordInventoryWebhook(String(ds?.inventory ?? ''))
+      setDiscordCashCutsWebhook(String(ds?.cash_cuts ?? ''))
+      setDiscordGeneralAdminWebhook(String(ds?.general_admin ?? ''))
 
-      const ts = d.telegram_settings || d.telegramSettings || {}
-      setTelegramBotToken(ts.bot_token ?? ts.botToken ?? d.telegram_bot_token ?? '')
-      setTelegramReservationsChatId(ts.reservations ?? ts.reservations_chat_id ?? '')
-      setTelegramSystemAlertsChatId(ts.system_alerts ?? '')
-      setTelegramInventoryChatId(ts.inventory ?? '')
-      setTelegramCashCutsChatId(ts.cash_cuts ?? '')
-      setTelegramGeneralAdminChatId(ts.general_admin ?? '')
+      let ts = d.telegram_settings ?? d.telegramSettings ?? {}
+      if (typeof ts === 'string') {
+        try { ts = JSON.parse(ts) } catch (e) { ts = {} }
+      }
+      setTelegramBotToken(String(ts?.bot_token ?? ts?.botToken ?? d.telegram_bot_token ?? ''))
+      setTelegramReservationsChatId(String(ts?.reservations ?? ts?.reservations_chat_id ?? ''))
+      setTelegramSystemAlertsChatId(String(ts?.system_alerts ?? ''))
+      setTelegramInventoryChatId(String(ts?.inventory ?? ''))
+      setTelegramCashCutsChatId(String(ts?.cash_cuts ?? ''))
+      setTelegramGeneralAdminChatId(String(ts?.general_admin ?? ''))
     } catch (err) {
       console.error('Settings error:', err)
       setError('No se pudo cargar la configuración')
