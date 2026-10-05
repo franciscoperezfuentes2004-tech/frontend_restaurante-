@@ -639,125 +639,118 @@ export default function Ingredients() {
             ) : (
               <div className="overflow-x-auto w-full">
                 <Table className="min-w-[900px]" shadow="shadow-none" headers={['Nombre del Ingrediente', 'Categoría', 'Unidad de Medida', 'Stock Actual', 'Proveedor Principal', 'Acciones']}>
-                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => {
-                  const item = currentIngredients[index]
-
-                  if (!item) {
-                    if (currentIngredients.length === 0 && index === 0) {
-                      return (
-                        <tr key="empty-state" className="h-[512px] border-b transition-colors duration-150" style={{ backgroundColor: 'var(--theme-surface)', borderColor: borderSubtle }}>
-                          <td colSpan={6} className="px-6 py-12 text-center text-theme-text-muted">
-                            <div className="flex flex-col items-center justify-center">
-                              <Package size={40} className="mb-4 text-theme-text-muted/30" />
-                              <EmptyState
-                                title="No hay ingredientes registrados"
-                                description="El catálogo maestro de cocina está vacío."
-                                iconType="default"
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    }
-                    if (currentIngredients.length === 0) return null
+                {currentIngredients.length === 0 ? (
+                  <tr key="empty-state" className="h-96 transition-colors duration-150" style={{ backgroundColor: 'var(--theme-surface)' }}>
+                    <td colSpan={6} className="px-6 py-12 text-center text-theme-text-muted border-none">
+                      <div className="flex flex-col items-center justify-center">
+                        <Package size={40} className="mb-4 text-theme-text-muted/30" />
+                        <EmptyState
+                          title="No hay ingredientes registrados"
+                          description="El catálogo maestro de cocina está vacío."
+                          iconType="default"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  currentIngredients.map((item, index) => {
+                    const delayClass = `delay-${Math.min(index + 1, 5)}`
+                    const stockActual = item.current_stock ?? item.stock ?? item.stock_actual
+                    const stockMinimo = item.min_stock ?? item.stock_minimo ?? 0
 
                     return (
                       <tr 
-                        key={`empty-${index}`}
-                        className="h-16 border-b transition-colors duration-150"
+                        key={item.id}
+                        className={`h-16 border-b transition-colors duration-150 animate-fadeInUp text-xs ${delayClass}`}
                         style={{ backgroundColor: 'var(--theme-surface)', borderColor: borderSubtle }}
                       >
-                        <td colSpan={6}></td>
-                      </tr>
-                    )
-                  }
-
-                  const delayClass = `delay-${Math.min(index + 1, 5)}`
-                  const stockActual = item.current_stock ?? item.stock ?? item.stock_actual
-                  const stockMinimo = item.min_stock ?? item.stock_minimo ?? 0
-
-                  return (
-                    <tr 
-                      key={item.id}
-                      className={`h-16 border-b transition-colors duration-150 animate-fadeInUp text-xs ${delayClass}`}
-                      style={{ backgroundColor: 'var(--theme-surface)', borderColor: borderSubtle }}
-                    >
-                      {/* Nombre e instructivo de notas */}
-                      <td className="px-5 py-4">
-                        <div>
-                          <p className="text-theme-text font-semibold text-sm group-hover:text-brand-300 transition-colors">
-                            {item.name}
-                          </p>
-                          {item.notes && (
-                            <p className="text-theme-text-muted text-xs mt-0.5 italic">
-                              {item.notes}
+                        {/* Nombre e instructivo de notas */}
+                        <td className="px-5 py-4">
+                          <div>
+                            <p className="text-theme-text font-semibold text-sm group-hover:text-brand-300 transition-colors">
+                              {item.name}
                             </p>
-                          )}
-                        </div>
-                      </td>
+                            {item.notes && (
+                              <p className="text-theme-text-muted text-xs mt-0.5 italic">
+                                {item.notes}
+                              </p>
+                            )}
+                          </div>
+                        </td>
 
-                      <td className="px-5 py-4">
-                        <span className="px-2.5 py-1 rounded-md bg-theme-input text-theme-text border border-theme-border-subtle font-medium">
-                          {item.category}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span className="font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                          {item.unit}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-mono font-bold text-sm ${
-                            stockActual <= 0 
-                              ? 'text-red-500' 
-                              : stockActual <= stockMinimo 
-                                ? 'text-amber-500' 
-                                : 'text-emerald-500'
-                          }`}>
-                            {stockActual}
+                        <td className="px-5 py-4">
+                          <span className="px-2.5 py-1 rounded-md bg-theme-input text-theme-text border border-theme-border-subtle font-medium">
+                            {item.category}
                           </span>
-                          {stockMinimo > 0 && (
-                            <span className="text-theme-text-muted text-[10px] uppercase font-bold">
-                              (Min: {stockMinimo})
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <span className="font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                            {item.unit}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-mono font-bold text-sm ${
+                              stockActual <= 0 
+                                ? 'text-red-500' 
+                                : stockActual <= stockMinimo 
+                                  ? 'text-amber-500' 
+                                  : 'text-emerald-500'
+                            }`}>
+                              {stockActual ?? 0}
                             </span>
-                          )}
-                        </div>
-                      </td>
+                            {stockMinimo > 0 && (
+                              <span className="text-theme-text-muted text-[10px] uppercase font-bold">
+                                (Min: {stockMinimo})
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
-                      <td className="px-5 py-4">
-                        <span className="text-theme-text font-medium text-xs">
-                          {item.supplier_name || <span className="text-theme-text-muted italic">No asignado</span>}
-                        </span>
-                      </td>
+                        <td className="px-5 py-4">
+                          <span className="text-theme-text font-medium text-xs">
+                            {item.supplier_name || <span className="text-theme-text-muted italic">No asignado</span>}
+                          </span>
+                        </td>
 
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {esGerente && (
-                            <>
+                        <td className="px-5 py-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button 
+                              type="button"
+                              onClick={() => handleOpenModal(item)}
+                              className="p-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg transition-colors cursor-pointer border border-blue-200/50 dark:border-blue-500/20"
+                              title="Editar Ingrediente"
+                            >
+                              <Pencil size={15}/>
+                            </button>
+                            {confirmDelete === item.id ? (
                               <button 
-                                onClick={() => handleOpenModal(item)}
-                                className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors cursor-pointer border border-blue-200/50"
-                                title="Editar Ingrediente"
+                                type="button"
+                                onClick={() => handleDelete(item.id)}
+                                disabled={deletingId === item.id}
+                                className="animate-scaleIn text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded-lg px-2.5 py-1.5 hover:bg-red-500/30 shadow-xs transition-all cursor-pointer font-bold"
+                                title="Confirmar eliminación"
                               >
-                                <Pencil size={15}/>
+                                {deletingId === item.id ? '...' : '¿Eliminar?'}
                               </button>
+                            ) : (
                               <button 
-                                onClick={() => handleDelete(item)}
-                                className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors cursor-pointer border border-red-200/50"
+                                type="button"
+                                onClick={() => handleDelete(item.id)}
+                                className="p-2 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-colors cursor-pointer border border-red-200/50 dark:border-red-500/20"
                                 title="Eliminar Ingrediente"
                               >
                                 <Trash2 size={15}/>
                               </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </Table>
             </div>
             )}
