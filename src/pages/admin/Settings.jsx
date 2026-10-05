@@ -2316,14 +2316,8 @@ export default function Settings() {
 
               {/* Renderizado condicional */}
               {notificationPlatform === 'discord' && (
-                <div 
-                  className="rounded-xl p-4 space-y-4 border transition-all animate-fadeIn"
-                  style={{ 
-                    backgroundColor: 'var(--theme-subcard-bg)', 
-                    borderColor: borderSubtle 
-                  }}
-                >
-                  <div className="flex items-center gap-2 pb-1 border-b border-black/5 dark:border-white/5">
+                <div className="space-y-4 pt-1 transition-all animate-fadeIn">
+                  <div className="flex items-center gap-2 pb-2 border-b" style={{ borderColor: borderSubtle }}>
                     <Link2 size={15} style={{ color: colorPrimario }} />
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: textColor }}>
                       Webhooks de Discord por evento
@@ -2461,14 +2455,8 @@ export default function Settings() {
               )}
 
               {notificationPlatform === 'telegram' && (
-                <div 
-                  className="rounded-xl p-4 space-y-4 border transition-all animate-fadeIn"
-                  style={{ 
-                    backgroundColor: 'var(--theme-subcard-bg)', 
-                    borderColor: borderSubtle 
-                  }}
-                >
-                  <div className="flex items-center gap-2 pb-1 border-b border-black/5 dark:border-white/5">
+                <div className="space-y-4 pt-1 transition-all animate-fadeIn">
+                  <div className="flex items-center gap-2 pb-2 border-b" style={{ borderColor: borderSubtle }}>
                     <Send size={15} style={{ color: colorPrimario }} />
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: textColor }}>
                       Bot y Canales de Telegram por evento
