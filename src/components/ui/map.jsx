@@ -7,57 +7,34 @@ const MapContext = createContext(null)
 
 export const OPENFREEMAP_DARK_STYLE = 'https://tiles.openfreemap.org/styles/dark'
 
-export const CARTO_DARK_STYLE = {
+export const OSM_STYLE = {
   version: 8,
   sources: {
-    'carto-dark': {
+    'osm-tiles': {
       type: 'raster',
       tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
       ],
       tileSize: 256,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }
   },
   layers: [
     {
-      id: 'carto-dark-layer',
+      id: 'osm-tiles-layer',
       type: 'raster',
-      source: 'carto-dark',
+      source: 'osm-tiles',
       minzoom: 0,
-      maxzoom: 20
+      maxzoom: 19
     }
   ]
 }
 
-export const CARTO_LIGHT_STYLE = {
-  version: 8,
-  sources: {
-    'carto-light': {
-      type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-        'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-        'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png'
-      ],
-      tileSize: 256,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }
-  },
-  layers: [
-    {
-      id: 'carto-light-layer',
-      type: 'raster',
-      source: 'carto-light',
-      minzoom: 0,
-      maxzoom: 20
-    }
-  ]
-}
-
-export const CARTO_VOYAGER_STYLE = CARTO_LIGHT_STYLE
+export const CARTO_DARK_STYLE = OSM_STYLE
+export const CARTO_LIGHT_STYLE = OSM_STYLE
+export const CARTO_VOYAGER_STYLE = OSM_STYLE
 
 export function parseAndSanitizeCoords(rawLng, rawLat, defaultLng = -99.133209, defaultLat = 19.432608) {
   let lng = (rawLng !== undefined && rawLng !== null && rawLng !== '') ? parseFloat(rawLng) : defaultLng

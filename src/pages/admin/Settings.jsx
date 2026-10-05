@@ -47,7 +47,7 @@ import Dropdown from '../../components/ui/Dropdown'
 import { getConfiguracion, updateConfiguracion, uploadLogoConfiguracion, updateSettings, updateCredentials } from '../../api/settings'
 import client from '../../api/client'
 import { useTheme } from '../../context/ThemeContext'
-import { Map, Marker, RadiusCircle } from '../../components/ui/map'
+import { Map, Marker, RadiusCircle, OSM_STYLE } from '../../components/ui/map'
 import circle from '@turf/circle'
 import { 
   validateRestaurantSettings, 
@@ -723,45 +723,78 @@ export default function Settings() {
 
 
 
-  const geocodeAddressAndOpenMap = async () => {
-    setIsGeocoding(true)
+  const fetchNominatimCoords = async (query) => {
+    if (!query || !query.trim()) return null
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=mx`, {
+        headers: { 'Accept-Language': 'es' }
+      })
+      const list = await res.json()
+      if (list && list.length > 0) {
+        const lon = parseFloat(list[0].lon)
+        const lat = parseFloat(list[0].lat)
+        if (!isNaN(lon) && !isNaN(lat)) {
+          return { lng: lon, lat: lat }
+        }
+      }
+    } catch (e) {
+      console.warn('Geocoding warning for query:', query, e)
+    }
+    return null
+  }
+
+  const resolveAddressCoords = async () => {
     const addressParts = [streetName, municipio, ciudad, estado, postalCode, 'Mexico'].filter(Boolean)
     const fullAddress = addressParts.join(', ')
 
-    if (fullAddress && (!pinCoords || (pinCoords.lng === -99.133209 && pinCoords.lat === 19.432608))) {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&countrycodes=mx`)
-        const data = await res.json()
-        if (data && data.length > 0) {
-          setPinCoords({ lng: parseFloat(data[0].lon), lat: parseFloat(data[0].lat) })
-        }
-      } catch (error) {
-        console.error('Error obteniendo ubicación para radio de entrega:', error)
-      } finally {
-        setIsGeocoding(false)
-        setIsMapModalOpen(true)
+    let coords = null
+    // 1. Intento con dirección completa
+    if (fullAddress) {
+      coords = await fetchNominatimCoords(fullAddress)
+    }
+    // 2. Intento con calle y código postal
+    if (!coords && streetName && postalCode) {
+      coords = await fetchNominatimCoords(`${streetName}, ${postalCode}, Mexico`)
+    }
+    // 3. Intento con calle y ciudad / municipio
+    if (!coords && streetName && (municipio || ciudad)) {
+      coords = await fetchNominatimCoords(`${streetName}, ${municipio || ciudad}, ${estado || ''}, Mexico`)
+    }
+    // 4. Intento con código postal
+    if (!coords && postalCode) {
+      coords = await fetchNominatimCoords(`${postalCode}, Mexico`)
+    }
+    // 5. Intento con municipio/ciudad y estado
+    if (!coords && (municipio || ciudad)) {
+      coords = await fetchNominatimCoords(`${municipio || ciudad}, ${estado || ''}, Mexico`)
+    }
+
+    return coords
+  }
+
+  const geocodeAddressAndOpenMap = async () => {
+    setIsGeocoding(true)
+    try {
+      const coords = await resolveAddressCoords()
+      if (coords) {
+        setPinCoords(coords)
       }
-    } else {
+    } catch (error) {
+      console.error('Error obteniendo ubicación para radio de entrega:', error)
+    } finally {
       setIsGeocoding(false)
       setIsMapModalOpen(true)
     }
   }
 
-
   const generateMapView = async () => {
     setIsSearchingCoords(true)
-    const addressParts = [streetName, municipio, ciudad, estado, postalCode, 'Mexico'].filter(Boolean)
-    const fullAddress = addressParts.join(', ')
-
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&countrycodes=mx`)
-      const data = await response.json()
-      if (data && data.length > 0) {
-        const lon = parseFloat(data[0].lon)
-        const lat = parseFloat(data[0].lat)
-        if (!isNaN(lon) && !isNaN(lat)) {
-          setPinCoords({ lng: lon, lat: lat })
-        }
+      const coords = await resolveAddressCoords()
+      if (coords) {
+        setPinCoords(coords)
+        setLatitude(coords.lat)
+        setLongitude(coords.lng)
       }
     } catch (err) {
       console.error('Error al geocodificar ubicación inicial:', err)
@@ -2736,17 +2769,7 @@ export default function Settings() {
                         latitude: pinCoords.lat,
                         zoom: 13
                       }}
-                      mapStyle={{
-                        version: 8,
-                        sources: {
-                          'carto-dark': {
-                            type: 'raster',
-                            tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],
-                            tileSize: 256
-                          }
-                        },
-                        layers: [{ id: 'carto-dark-layer', type: 'raster', source: 'carto-dark' }]
-                      }}
+                      mapStyle={OSM_STYLE}
                     >
                       {/* Círculo de Cobertura de Entrega */}
                       {pinCoords && (
@@ -2833,35 +2856,13 @@ export default function Settings() {
               <div className="p-4 flex-1 relative">
                 <div className="w-full h-[400px] rounded-lg overflow-hidden relative">
                   <Map
+                    key={`modal_map_${pinCoords?.lat}_${pinCoords?.lng}`}
                     initialViewState={{
                       longitude: pinCoords?.lng ?? -99.133209,
                       latitude: pinCoords?.lat ?? 19.432608,
-                      zoom: 13
+                      zoom: 16
                     }}
-                    mapStyle={{
-                      version: 8,
-                      sources: {
-                        'carto-dark': {
-                          type: 'raster',
-                          tiles: [
-                            'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-                            'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-                            'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
-                          ],
-                          tileSize: 256,
-                          attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-                        }
-                      },
-                      layers: [
-                        {
-                          id: 'carto-dark-layer',
-                          type: 'raster',
-                          source: 'carto-dark',
-                          minzoom: 0,
-                          maxzoom: 22
-                        }
-                      ]
-                    }}
+                    mapStyle={OSM_STYLE}
                   >
                     {pinCoords && (
                       <Marker 
