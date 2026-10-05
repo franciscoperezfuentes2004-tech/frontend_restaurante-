@@ -131,7 +131,7 @@ export default function TimePicker({
         onClick={() => !disabled && setOpen(v => !v)}
         className={
           fullWidth
-            ? `input-subcard bg-slate-100 dark:bg-white/5 w-full h-11 px-4 py-2.5 flex items-center justify-between rounded-xl transition-all duration-200 select-none border font-medium ${
+            ? `input-subcard bg-slate-100 dark:bg-white/5 w-full min-w-[130px] h-11 px-3 sm:px-4 py-2.5 flex items-center justify-between rounded-xl transition-all duration-200 select-none border font-medium ${
                 hasError
                   ? '!border-rose-500 ring-1 ring-rose-500/20'
                   : open
@@ -159,7 +159,7 @@ export default function TimePicker({
         <div className="flex items-center gap-2 min-w-0">
           <Clock size={15} className="text-theme-text-muted shrink-0" />
           <span
-            className="text-xs font-semibold"
+            className="text-xs font-semibold whitespace-nowrap"
             style={{ color: displayValue ? 'var(--theme-text)' : 'var(--theme-text-muted)' }}
           >
             {displayValue || placeholder}

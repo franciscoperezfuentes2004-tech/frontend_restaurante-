@@ -1024,8 +1024,8 @@ export default function Settings() {
                   <span className="font-bold text-xs sm:text-sm" style={{ color: textColor || 'var(--theme-text)' }}>{item.day}</span>
                 </div>
 
-                <div className="flex items-center gap-2.5 max-md:grid max-md:grid-cols-1 max-md:gap-3 max-md:w-full max-md:mt-2">
-                  <div className="flex items-center gap-2 max-md:w-full">
+                <div className="flex items-center gap-3 sm:gap-4 max-md:grid max-md:grid-cols-1 max-md:gap-3 max-md:w-full max-md:mt-2">
+                  <div className="flex items-center gap-2 w-full sm:w-44 md:w-48 shrink-0">
                     <span className="text-xs font-semibold w-6 shrink-0" style={{ color: textSubtle || 'var(--theme-text-muted)' }}>De:</span>
                     <div className="flex-1 min-w-0">
                       <TimePicker
@@ -1036,7 +1036,7 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 max-md:w-full">
+                  <div className="flex items-center gap-2 w-full sm:w-44 md:w-48 shrink-0">
                     <span className="text-xs font-semibold w-6 shrink-0" style={{ color: textSubtle || 'var(--theme-text-muted)' }}>A:</span>
                     <div className="flex-1 min-w-0">
                       <TimePicker
