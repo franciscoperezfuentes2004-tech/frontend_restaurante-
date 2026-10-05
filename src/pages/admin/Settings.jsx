@@ -248,6 +248,7 @@ export default function Settings() {
   const [discordCashCutsWebhook, setDiscordCashCutsWebhook] = useState('')
   const [discordGeneralAdminWebhook, setDiscordGeneralAdminWebhook] = useState('')
   const [discordDailyFinancialWebhook, setDiscordDailyFinancialWebhook] = useState('')
+  const [discordDeveloperErrorsWebhook, setDiscordDeveloperErrorsWebhook] = useState('')
 
   const [telegramBotToken, setTelegramBotToken] = useState('')
   const [telegramReservationsChatId, setTelegramReservationsChatId] = useState('')
@@ -256,6 +257,7 @@ export default function Settings() {
   const [telegramCashCutsChatId, setTelegramCashCutsChatId] = useState('')
   const [telegramGeneralAdminChatId, setTelegramGeneralAdminChatId] = useState('')
   const [telegramDailyFinancialChatId, setTelegramDailyFinancialChatId] = useState('')
+  const [telegramDeveloperErrorsChatId, setTelegramDeveloperErrorsChatId] = useState('')
   const [savingNotifications, setSavingNotifications] = useState(false)
 
   // Validaciones calculadas en tiempo real
@@ -547,6 +549,7 @@ export default function Settings() {
       setDiscordCashCutsWebhook(String(ds?.cash_cuts ?? ''))
       setDiscordGeneralAdminWebhook(String(ds?.general_admin ?? ''))
       setDiscordDailyFinancialWebhook(String(ds?.daily_financial_report ?? ''))
+      setDiscordDeveloperErrorsWebhook(String(ds?.developer_errors ?? ''))
 
       let ts = d.telegram_settings ?? d.telegramSettings ?? {}
       if (typeof ts === 'string') {
@@ -559,6 +562,7 @@ export default function Settings() {
       setTelegramCashCutsChatId(String(ts?.cash_cuts ?? ''))
       setTelegramGeneralAdminChatId(String(ts?.general_admin ?? ''))
       setTelegramDailyFinancialChatId(String(ts?.daily_financial_report ?? ''))
+      setTelegramDeveloperErrorsChatId(String(ts?.developer_errors ?? ''))
     } catch (err) {
       console.error('Settings error:', err)
       setError('No se pudo cargar la configuración')
@@ -1105,6 +1109,7 @@ export default function Settings() {
           cash_cuts: discordCashCutsWebhook.trim(),
           general_admin: discordGeneralAdminWebhook.trim(),
           daily_financial_report: discordDailyFinancialWebhook.trim(),
+          developer_errors: discordDeveloperErrorsWebhook.trim(),
         },
         discordSettings: {
           reservations: discordReservationsWebhook.trim(),
@@ -1113,6 +1118,7 @@ export default function Settings() {
           cash_cuts: discordCashCutsWebhook.trim(),
           general_admin: discordGeneralAdminWebhook.trim(),
           daily_financial_report: discordDailyFinancialWebhook.trim(),
+          developer_errors: discordDeveloperErrorsWebhook.trim(),
         },
         telegram_settings: {
           bot_token: telegramBotToken.trim(),
@@ -1122,6 +1128,7 @@ export default function Settings() {
           cash_cuts: telegramCashCutsChatId.trim(),
           general_admin: telegramGeneralAdminChatId.trim(),
           daily_financial_report: telegramDailyFinancialChatId.trim(),
+          developer_errors: telegramDeveloperErrorsChatId.trim(),
         },
         telegramSettings: {
           bot_token: telegramBotToken.trim(),
@@ -1131,6 +1138,7 @@ export default function Settings() {
           cash_cuts: telegramCashCutsChatId.trim(),
           general_admin: telegramGeneralAdminChatId.trim(),
           daily_financial_report: telegramDailyFinancialChatId.trim(),
+          developer_errors: telegramDeveloperErrorsChatId.trim(),
         },
       }
 
@@ -2576,6 +2584,27 @@ export default function Settings() {
                         Cierre financiero automático diario (ventas, gastos y balance).
                       </p>
                     </div>
+
+                    {/* Monitor de Errores (Developer) */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        MONITOR DE ERRORES (DEVELOPER)
+                      </label>
+                      <div className="relative">
+                        <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="url"
+                          value={discordDeveloperErrorsWebhook}
+                          onChange={(e) => setDiscordDeveloperErrorsWebhook(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Excepciones técnicas no capturadas y fallos críticos en vivo para desarrollador.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2734,6 +2763,27 @@ export default function Settings() {
                       </div>
                       <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
                         Cierre financiero automático diario (ventas, gastos y balance).
+                      </p>
+                    </div>
+
+                    {/* Monitor de Errores (Developer) */}
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: textMuted }}>
+                        MONITOR DE ERRORES (DEVELOPER)
+                      </label>
+                      <div className="relative">
+                        <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                        <input 
+                          type="text"
+                          value={telegramDeveloperErrorsChatId}
+                          onChange={(e) => setTelegramDeveloperErrorsChatId(e.target.value)}
+                          placeholder="-100..."
+                          style={{ color: textColor }}
+                          className="input-subcard w-full bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none transition-all duration-200 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: textMuted }}>
+                        Excepciones técnicas no capturadas y fallos críticos en vivo para desarrollador.
                       </p>
                     </div>
                   </div>
