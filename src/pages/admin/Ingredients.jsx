@@ -32,7 +32,9 @@ const DEFAULT_UNITS = ['kg', 'g', 'L', 'ml', 'piezas', 'cajas', 'bolsas', 'latas
 
 const defaultForm = {
   name: '',
+  category_id: '',
   category: '',
+  unit_of_measure: 'kg',
   unit: 'kg',
   supplier_id: '',
   notes: ''
@@ -150,10 +152,12 @@ export default function Ingredients() {
       const res = await adminGetIngredientCategories()
       if (res.data && Array.isArray(res.data.categories)) {
         setCategoriesList(res.data.categories)
+        return res.data.categories
       }
     } catch (err) {
       console.error("Error al cargar categorías de ingredientes:", err)
     }
+    return []
   }
 
   // 4. Fetch active suppliers from backend
@@ -179,26 +183,48 @@ export default function Ingredients() {
     setHasSubmitted(false)
     if (item) {
       setEditingItem(item)
+      let initialCatId = item.category_id || ''
+      if (!initialCatId && item.category && Array.isArray(categoriesList)) {
+        const found = categoriesList.find(c => (typeof c === 'object' && c !== null ? c.name : c) === item.category)
+        if (found && typeof found === 'object' && found.id) {
+          initialCatId = found.id
+        }
+      }
+
       setForm({
         name: item.name || '',
+        category_id: initialCatId,
         category: item.category || '',
-        unit: item.unit || 'kg',
+        unit_of_measure: item.unit_of_measure || item.unit || 'kg',
+        unit: item.unit_of_measure || item.unit || 'kg',
         supplier_id: item.supplier_id ? String(item.supplier_id) : '',
         notes: item.notes || ''
+      })
+
+      fetchCategories().then((cats) => {
+        if (cats && Array.isArray(cats) && item.category) {
+          const found = cats.find(c => (typeof c === 'object' && c !== null ? c.name : c) === item.category)
+          if (found && typeof found === 'object' && found.id) {
+            setForm(prev => prev.category_id ? prev : { ...prev, category_id: found.id })
+          }
+        }
       })
     } else {
       setEditingItem(null)
       setForm({
         ...defaultForm,
-        category: ''
+        category_id: '',
+        category: '',
+        unit_of_measure: 'kg',
+        unit: 'kg'
       })
+      fetchCategories()
     }
     setIsCreatingCategory(false)
     setNewCategoryInput('')
     setIsCreatingUnit(false)
     setNewUnitInput('')
     setShowModal(true)
-    fetchCategories()
     fetchSuppliers()
   }
 
@@ -210,12 +236,26 @@ export default function Ingredients() {
     try {
       setCreatingCatLoading(true)
       const res = await adminCreateIngredientCategory({ name: nameTrimmed })
-      const createdName = res.data?.category || nameTrimmed
+      const createdCategory = res.data?.category
+      const createdName = typeof createdCategory === 'object' && createdCategory !== null 
+        ? createdCategory.name 
+        : (createdCategory || nameTrimmed)
+      const createdId = typeof createdCategory === 'object' && createdCategory !== null 
+        ? createdCategory.id 
+        : null
+
       setToast({ message: `Categoría "${createdName}" creada con éxito`, type: "success" })
 
-      // Reload categories list and set form
-      await fetchCategories()
-      setForm(p => ({ ...p, category: createdName }))
+      // Reload categories list and set form with numeric category_id
+      const updatedCategories = await fetchCategories()
+      const foundInList = (updatedCategories || []).find(c => (typeof c === 'object' && c !== null ? c.name : c) === createdName)
+      const targetId = createdId || (foundInList && typeof foundInList === 'object' ? foundInList.id : '')
+
+      setForm(p => ({ 
+        ...p, 
+        category_id: targetId,
+        category: createdName 
+      }))
       setTouched(p => ({ ...p, category: true }))
       setIsCreatingCategory(false)
       setNewCategoryInput('')
@@ -236,7 +276,7 @@ export default function Ingredients() {
     if (!unitsList.includes(unitTrimmed)) {
       setUnitsList(prev => [...prev, unitTrimmed])
     }
-    setForm(p => ({ ...p, unit: unitTrimmed }))
+    setForm(p => ({ ...p, unit: unitTrimmed, unit_of_measure: unitTrimmed }))
     setTouched(p => ({ ...p, unit: true }))
     setIsCreatingUnit(false)
     setNewUnitInput('')
@@ -254,18 +294,41 @@ export default function Ingredients() {
       return
     }
 
-    let finalCategory = form.category
+    let finalCategoryId = form.category_id
     if (isCreatingCategory && newCategoryInput.trim()) {
       try {
         const resCat = await adminCreateIngredientCategory({ name: newCategoryInput.trim() })
-        finalCategory = resCat.data?.category || newCategoryInput.trim()
-        await fetchCategories()
+        const createdCat = resCat.data?.category
+        const catId = typeof createdCat === 'object' && createdCat !== null ? createdCat.id : null
+        const updatedList = await fetchCategories()
+        if (catId) {
+          finalCategoryId = catId
+        } else {
+          const found = (updatedList || []).find(c => (typeof c === 'object' && c !== null ? c.name : c) === newCategoryInput.trim())
+          if (found && typeof found === 'object' && found.id) {
+            finalCategoryId = found.id
+          }
+        }
       } catch (err) {
         console.error("Error creando categoría al guardar:", err)
       }
     }
 
-    let finalUnit = form.unit
+    // Resolver ID numérico si aún viene sólo como nombre
+    if ((!finalCategoryId || isNaN(Number(finalCategoryId))) && form.category && Array.isArray(categoriesList)) {
+      const found = categoriesList.find(c => (typeof c === 'object' && c !== null ? c.name : c) === form.category)
+      if (found && typeof found === 'object' && found.id) {
+        finalCategoryId = found.id
+      }
+    }
+
+    const numericCatId = Number(finalCategoryId)
+    if (!numericCatId || isNaN(numericCatId)) {
+      setToast({ message: "Debes seleccionar una categoría válida", type: "error" })
+      return
+    }
+
+    let finalUnit = form.unit_of_measure || form.unit
     if (isCreatingUnit && newUnitInput.trim()) {
       finalUnit = newUnitInput.trim()
       if (!unitsList.includes(finalUnit)) {
@@ -275,11 +338,13 @@ export default function Ingredients() {
 
     const payload = {
       name: form.name.trim(),
-      category: finalCategory,
-      unit: finalUnit,
+      category_id: numericCatId,
+      unit_of_measure: finalUnit,
       supplier_id: form.supplier_id ? Number(form.supplier_id) : null,
       notes: form.notes ? form.notes.trim() : null
     }
+
+    console.log("Payload enviado a adminCreateIngredient:", payload)
 
     try {
       setSubmitting(true)
@@ -882,10 +947,19 @@ export default function Ingredients() {
                 ) : (
                   <div>
                     <Dropdown
-                      options={categoriesList.map(c => ({ value: c, label: c }))}
-                      value={form.category}
+                      options={categoriesList.map(c => ({
+                        value: typeof c === 'object' && c !== null ? c.id : c,
+                        label: typeof c === 'object' && c !== null ? (c.name || c.nombre) : c
+                      }))}
+                      value={form.category_id || ''}
                       onChange={val => {
-                        setForm(p => ({ ...p, category: val }))
+                        const selected = categoriesList.find(c => (typeof c === 'object' && c !== null ? c.id : c) === val)
+                        const categoryName = typeof selected === 'object' && selected !== null ? (selected.name || selected.nombre) : selected
+                        setForm(p => ({ 
+                          ...p, 
+                          category_id: typeof val === 'number' || !isNaN(Number(val)) ? Number(val) : val,
+                          category: categoryName || val
+                        }))
                         setTouched(p => ({ ...p, category: true }))
                       }}
                       placeholder="Seleccionar categoría..."
@@ -960,9 +1034,9 @@ export default function Ingredients() {
                   <div>
                     <Dropdown
                       options={unitsList.map(u => ({ value: u, label: u }))}
-                      value={form.unit}
+                      value={form.unit_of_measure || form.unit}
                       onChange={val => {
-                        setForm(p => ({ ...p, unit: val }))
+                        setForm(p => ({ ...p, unit: val, unit_of_measure: val }))
                         setTouched(p => ({ ...p, unit: true }))
                       }}
                       placeholder="Seleccionar unidad..."

@@ -9,12 +9,10 @@ export const ingredientSchema = z.object({
     .min(2, 'El nombre debe tener al menos 2 caracteres')
     .max(100, 'El nombre no puede exceder 100 caracteres'),
   supplier_id: z.union([z.string(), z.number(), z.null()]).optional().nullable(),
-  category: z.string({ required_error: 'La categoría es obligatoria' })
-    .trim()
-    .min(1, 'Debes seleccionar una categoría'),
-  unit: z.string({ required_error: 'La unidad de medida es obligatoria' })
-    .trim()
-    .min(1, 'Debes seleccionar una unidad de medida'),
+  category: z.union([z.string(), z.number()], { required_error: 'La categoría es obligatoria' })
+    .refine(val => String(val).trim().length > 0, 'Debes seleccionar una categoría'),
+  unit: z.union([z.string(), z.number()], { required_error: 'La unidad de medida es obligatoria' })
+    .refine(val => String(val).trim().length > 0, 'Debes seleccionar una unidad de medida'),
   notes: z.string()
     .max(250, 'Las notas no pueden exceder 250 caracteres')
     .optional()
@@ -26,8 +24,12 @@ export const ingredientSchema = z.object({
  * Validador helper para ejecutar safeParse sobre el formulario
  */
 export const validateIngredient = (form, isCreatingCategory = false, newCategoryInput = '', isCreatingUnit = false, newUnitInput = '') => {
-  const categoryVal = isCreatingCategory ? newCategoryInput.trim() : (form?.category || form?.category_id || '').trim()
-  const unitVal = isCreatingUnit ? newUnitInput.trim() : (form?.unit || form?.unit_of_measure || '').trim()
+  const categoryVal = isCreatingCategory 
+    ? newCategoryInput.trim() 
+    : (form?.category_id !== undefined && form?.category_id !== '' && form?.category_id !== null ? String(form.category_id).trim() : (form?.category || '').trim())
+  const unitVal = isCreatingUnit 
+    ? newUnitInput.trim() 
+    : (form?.unit_of_measure || form?.unit || '').trim()
 
   const payload = {
     name: (form?.name || '').trim(),
