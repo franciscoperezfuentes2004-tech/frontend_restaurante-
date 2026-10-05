@@ -182,6 +182,27 @@ export default function Stock() {
     return isFinite(res) ? res.toFixed(2) : '0.00'
   }, [entryForm.quantity, entryForm.cost_total])
 
+  // Computed metrics for Top 5 Gasto & Mermas visual bars & aggregates
+  const maxGasto = useMemo(() => {
+    if (!metricsData.top_gasto || metricsData.top_gasto.length === 0) return 1
+    return Math.max(...metricsData.top_gasto.map(item => Number(item.gasto_total) || 0), 1)
+  }, [metricsData.top_gasto])
+
+  const totalGastoTop = useMemo(() => {
+    if (!metricsData.top_gasto || metricsData.top_gasto.length === 0) return 0
+    return metricsData.top_gasto.reduce((acc, curr) => acc + (Number(curr.gasto_total) || 0), 0)
+  }, [metricsData.top_gasto])
+
+  const maxMerma = useMemo(() => {
+    if (!metricsData.top_mermas || metricsData.top_mermas.length === 0) return 1
+    return Math.max(...metricsData.top_mermas.map(item => Number(item.merma_total) || 0), 1)
+  }, [metricsData.top_mermas])
+
+  const totalMermaTop = useMemo(() => {
+    if (!metricsData.top_mermas || metricsData.top_mermas.length === 0) return 0
+    return metricsData.top_mermas.reduce((acc, curr) => acc + (Number(curr.merma_total) || 0), 0)
+  }, [metricsData.top_mermas])
+
   // Merma Modal State ("Registrar Merma")
   const [adjustModalOpen, setAdjustModalOpen] = useState(false)
   const [adjustItem, setAdjustItem] = useState(null)
@@ -1432,14 +1453,30 @@ export default function Stock() {
                 </div>
 
                 {/* Sección 3 — Top 5: Mayor Gasto en Insumos */}
-                <div className="border border-theme-border-subtle rounded-xl p-5 min-h-[300px] flex flex-col justify-between" style={{ backgroundColor: bgSubcard }}>
-                  <div className="shrink-0 mb-4">
-                    <h4 className="text-sm font-bold text-theme-text">Top 5: Mayor Gasto en Insumos</h4>
-                    <p className="text-[10px] text-theme-text-muted uppercase font-semibold mt-0.5">Ingredientes con mayor gasto en entradas (últimos 30 días)</p>
+                <div className="border border-theme-border-subtle rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all" style={{ backgroundColor: bgSubcard }}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 shrink-0">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-2 w-2 relative">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <h4 className="text-sm font-bold text-theme-text">Top 5: Mayor Gasto en Insumos</h4>
+                      </div>
+                      <p className="text-[10px] text-theme-text-muted uppercase font-semibold mt-0.5 tracking-wider">
+                        Insumos con mayor inversión en compras (últimos 30 días)
+                      </p>
+                    </div>
+                    {totalGastoTop > 0 && (
+                      <div className="self-start sm:self-auto px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-bold shrink-0">
+                        <span className="text-[10px] uppercase font-sans font-semibold text-emerald-700/70 dark:text-emerald-300/70 mr-1.5">Total Top 5:</span>
+                        ${totalGastoTop.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    )}
                   </div>
 
                   {(!metricsData.top_gasto || metricsData.top_gasto.length === 0) ? (
-                    <div className="flex-1 flex items-center justify-center py-6 rounded-xl border transition-colors duration-200" style={{ backgroundColor: bgCard, borderColor: borderSubtle }}>
+                    <div className="flex-1 flex items-center justify-center py-8 rounded-xl border transition-colors duration-200" style={{ backgroundColor: bgCard, borderColor: borderSubtle }}>
                       <EmptyState
                         title="Sin datos disponibles"
                         description="No hay registros de compras o entradas de insumos en los últimos 30 días."
@@ -1447,25 +1484,73 @@ export default function Stock() {
                       />
                     </div>
                   ) : (
-                    <div className="overflow-x-auto rounded-xl border border-theme-border-subtle" style={{ backgroundColor: bgCard }}>
+                    <div className="overflow-hidden rounded-xl border border-theme-border-subtle shadow-xs" style={{ backgroundColor: bgCard }}>
                       <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                          <tr className="border-b border-theme-border-subtle bg-theme-surface/40">
-                            <th className="px-3.5 py-2.5 font-bold text-theme-text-muted uppercase text-[10px]">Ingrediente</th>
-                            <th className="px-3.5 py-2.5 font-bold text-theme-text-muted uppercase text-[10px]">Unidad</th>
-                            <th className="px-3.5 py-2.5 font-bold text-theme-text-muted uppercase text-[10px] text-right">Gasto Total</th>
+                          <tr className="border-b border-theme-border-subtle bg-slate-50/80 dark:bg-white/[0.03]">
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px] w-12 text-center">#</th>
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px]">Ingrediente</th>
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px] text-center">Unidad</th>
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px] text-right">Gasto Total</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-theme-border-subtle">
-                          {metricsData.top_gasto.map((item, idx) => (
-                            <tr key={idx} className="hover:bg-theme-surface/50 transition-colors">
-                              <td className="px-3.5 py-2.5 text-theme-text font-medium">{item.ingredient_name}</td>
-                              <td className="px-3.5 py-2.5 text-theme-text-muted font-mono text-[11px]">{item.unidad}</td>
-                              <td className="px-3.5 py-2.5 text-brand-300 font-mono font-bold text-right">
-                                ${item.gasto_total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                              </td>
-                            </tr>
-                          ))}
+                          {metricsData.top_gasto.map((item, idx) => {
+                            const percentOfMax = Math.min(100, Math.max(8, ((item.gasto_total || 0) / maxGasto) * 100))
+                            const percentOfTotal = totalGastoTop > 0 ? (((item.gasto_total || 0) / totalGastoTop) * 100).toFixed(1) : 0
+                            
+                            const rankBadge = idx === 0 
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                              : idx === 1
+                              ? 'bg-slate-500/15 text-slate-600 dark:text-slate-300 border-slate-500/30'
+                              : idx === 2
+                              ? 'bg-amber-700/15 text-amber-700 dark:text-amber-500 border-amber-700/30'
+                              : 'bg-theme-surface text-theme-text-muted border-theme-border-subtle'
+
+                            return (
+                              <tr 
+                                key={idx} 
+                                className="hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all group duration-150"
+                              >
+                                <td className="px-3.5 py-3 text-center">
+                                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg text-[11px] font-bold font-mono border ${rankBadge}`}>
+                                    {idx + 1}
+                                  </span>
+                                </td>
+
+                                <td className="px-3.5 py-3">
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="text-theme-text font-semibold text-xs group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                        {item.ingredient_name}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-theme-text-muted font-medium shrink-0">
+                                        {percentOfTotal}%
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-1.5 mt-1.5 overflow-hidden border border-theme-border-subtle/40">
+                                      <div 
+                                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-700 ease-out"
+                                        style={{ width: `${percentOfMax}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="px-3.5 py-3 text-center">
+                                  <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 dark:bg-white/5 text-theme-text border border-theme-border-subtle">
+                                    {item.unidad}
+                                  </span>
+                                </td>
+
+                                <td className="px-3.5 py-3 text-right">
+                                  <span className="font-mono font-bold text-xs sm:text-sm text-theme-text group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                    ${item.gasto_total.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -1473,14 +1558,30 @@ export default function Stock() {
                 </div>
 
                 {/* Sección 4 — Top 5: Ingredientes con Mayor Fuga (Merma) */}
-                <div className="border border-theme-border-subtle rounded-xl p-5 min-h-[300px] flex flex-col justify-between" style={{ backgroundColor: bgSubcard }}>
-                  <div className="shrink-0 mb-4">
-                    <h4 className="text-sm font-bold text-theme-text">Top 5: Ingredientes con Mayor Fuga (Merma)</h4>
-                    <p className="text-[10px] text-theme-text-muted uppercase font-semibold mt-0.5">Ingredientes con mayor pérdida económica por desperdicio (últimos 30 días)</p>
+                <div className="border border-theme-border-subtle rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all" style={{ backgroundColor: bgSubcard }}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 shrink-0">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-2 w-2 relative">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                        </span>
+                        <h4 className="text-sm font-bold text-theme-text">Top 5: Ingredientes con Mayor Fuga (Merma)</h4>
+                      </div>
+                      <p className="text-[10px] text-theme-text-muted uppercase font-semibold mt-0.5 tracking-wider">
+                        Ingredientes con mayor pérdida económica por desperdicio (últimos 30 días)
+                      </p>
+                    </div>
+                    {totalMermaTop > 0 && (
+                      <div className="self-start sm:self-auto px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-mono text-xs font-bold shrink-0">
+                        <span className="text-[10px] uppercase font-sans font-semibold text-rose-700/70 dark:text-rose-300/70 mr-1.5">Total Pérdidas:</span>
+                        ${totalMermaTop.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    )}
                   </div>
 
                   {(!metricsData.top_mermas || metricsData.top_mermas.length === 0) ? (
-                    <div className="flex-1 flex items-center justify-center py-6 rounded-xl border transition-colors duration-200" style={{ backgroundColor: bgCard, borderColor: borderSubtle }}>
+                    <div className="flex-1 flex items-center justify-center py-8 rounded-xl border transition-colors duration-200" style={{ backgroundColor: bgCard, borderColor: borderSubtle }}>
                       <EmptyState
                         title="Sin datos disponibles"
                         description="No hay mermas registradas en los últimos 30 días."
@@ -1488,25 +1589,71 @@ export default function Stock() {
                       />
                     </div>
                   ) : (
-                    <div className="overflow-x-auto rounded-xl border border-theme-border-subtle" style={{ backgroundColor: bgCard }}>
+                    <div className="overflow-hidden rounded-xl border border-theme-border-subtle shadow-xs" style={{ backgroundColor: bgCard }}>
                       <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                          <tr className="border-b border-theme-border-subtle bg-theme-surface/40">
-                            <th className="px-3.5 py-2.5 font-bold text-theme-text-muted uppercase text-[10px]">Ingrediente</th>
-                            <th className="px-3.5 py-2.5 font-bold text-theme-text-muted uppercase text-[10px]">Unidad</th>
-                            <th className="px-3.5 py-2.5 font-bold text-theme-text-muted uppercase text-[10px] text-right">Pérdida Total</th>
+                          <tr className="border-b border-theme-border-subtle bg-slate-50/80 dark:bg-white/[0.03]">
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px] w-12 text-center">#</th>
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px]">Ingrediente</th>
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px] text-center">Unidad</th>
+                            <th className="px-3.5 py-3 font-bold text-theme-text-muted uppercase text-[10px] text-right">Pérdida Total</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-theme-border-subtle">
-                          {metricsData.top_mermas.map((item, idx) => (
-                            <tr key={idx} className="hover:bg-theme-surface/50 transition-colors">
-                              <td className="px-3.5 py-2.5 text-theme-text font-medium">{item.ingredient_name}</td>
-                              <td className="px-3.5 py-2.5 text-theme-text-muted font-mono text-[11px]">{item.unidad}</td>
-                              <td className="px-3.5 py-2.5 text-red-400 font-mono font-bold text-right">
-                                ${item.merma_total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                              </td>
-                            </tr>
-                          ))}
+                          {metricsData.top_mermas.map((item, idx) => {
+                            const percentOfMax = Math.min(100, Math.max(8, ((item.merma_total || 0) / maxMerma) * 100))
+                            const percentOfTotal = totalMermaTop > 0 ? (((item.merma_total || 0) / totalMermaTop) * 100).toFixed(1) : 0
+                            
+                            const rankBadge = idx === 0 
+                              ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                              : idx === 1
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                              : 'bg-theme-surface text-theme-text-muted border-theme-border-subtle'
+
+                            return (
+                              <tr 
+                                key={idx} 
+                                className="hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all group duration-150"
+                              >
+                                <td className="px-3.5 py-3 text-center">
+                                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg text-[11px] font-bold font-mono border ${rankBadge}`}>
+                                    {idx + 1}
+                                  </span>
+                                </td>
+
+                                <td className="px-3.5 py-3">
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="text-theme-text font-semibold text-xs group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                                        {item.ingredient_name}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-theme-text-muted font-medium shrink-0">
+                                        {percentOfTotal}%
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-1.5 mt-1.5 overflow-hidden border border-theme-border-subtle/40">
+                                      <div 
+                                        className="h-full rounded-full bg-gradient-to-r from-rose-500 to-red-600 transition-all duration-700 ease-out"
+                                        style={{ width: `${percentOfMax}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="px-3.5 py-3 text-center">
+                                  <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 dark:bg-white/5 text-theme-text border border-theme-border-subtle">
+                                    {item.unidad}
+                                  </span>
+                                </td>
+
+                                <td className="px-3.5 py-3 text-right">
+                                  <span className="font-mono font-bold text-xs sm:text-sm text-rose-600 dark:text-rose-400 transition-colors">
+                                    ${item.merma_total.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                     </div>
