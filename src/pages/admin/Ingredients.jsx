@@ -37,6 +37,7 @@ const defaultForm = {
   unit_of_measure: 'kg',
   unit: 'kg',
   supplier_id: '',
+  min_stock: '0',
   notes: ''
 }
 
@@ -191,6 +192,10 @@ export default function Ingredients() {
         }
       }
 
+      const initialMinStock = item.min_stock !== undefined && item.min_stock !== null
+        ? String(item.min_stock)
+        : (item.stock_minimo !== undefined && item.stock_minimo !== null ? String(item.stock_minimo) : '0')
+
       setForm({
         name: item.name || '',
         category_id: initialCatId,
@@ -198,6 +203,7 @@ export default function Ingredients() {
         unit_of_measure: item.unit_of_measure || item.unit || 'kg',
         unit: item.unit_of_measure || item.unit || 'kg',
         supplier_id: item.supplier_id ? String(item.supplier_id) : '',
+        min_stock: initialMinStock,
         notes: item.notes || ''
       })
 
@@ -216,7 +222,8 @@ export default function Ingredients() {
         category_id: '',
         category: '',
         unit_of_measure: 'kg',
-        unit: 'kg'
+        unit: 'kg',
+        min_stock: '0'
       })
       fetchCategories()
     }
@@ -336,11 +343,16 @@ export default function Ingredients() {
       }
     }
 
+    const numericMinStock = form.min_stock !== '' && form.min_stock !== null && !isNaN(Number(form.min_stock))
+      ? Math.max(0, Number(form.min_stock))
+      : 0
+
     const payload = {
       name: form.name.trim(),
       category_id: numericCatId,
       unit_of_measure: finalUnit,
       supplier_id: form.supplier_id ? Number(form.supplier_id) : null,
+      min_stock: numericMinStock,
       notes: form.notes ? form.notes.trim() : null
     }
 
@@ -1046,7 +1058,62 @@ export default function Ingredients() {
                 )}
               </div>
 
-              {/* 5. Notas opcionales */}
+              {/* 5. Campo Stock Mínimo (Alerta de Existencias) */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5 select-none">
+                  <label className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider block">
+                    Stock Mínimo (Alerta de Existencias) <span className="text-red-400">*</span>
+                  </label>
+                  <span className="text-[10px] font-semibold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-md border border-brand-500/20 font-mono">
+                    Unidad: {form.unit_of_measure || form.unit || 'kg'}
+                  </span>
+                </div>
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    step="any"
+                    min="0"
+                    max="999999.99"
+                    value={form.min_stock}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'Minus' || e.key === 'e' || e.key === 'E') {
+                        e.preventDefault()
+                      }
+                    }}
+                    onBlur={() => {
+                      setTouched(p => ({ ...p, min_stock: true }))
+                      const val = form.min_stock
+                      if (val === '' || isNaN(Number(val)) || Number(val) < 0) {
+                        setForm(p => ({ ...p, min_stock: '0' }))
+                      }
+                    }}
+                    onChange={e => {
+                      const val = e.target.value.replace(/-/g, '')
+                      setForm(p => ({ ...p, min_stock: val }))
+                      setTouched(p => ({ ...p, min_stock: true }))
+                    }}
+                    placeholder="0"
+                    className={`input-subcard bg-slate-100 dark:bg-white/5 border rounded-xl pl-4 pr-16 py-3 text-theme-text text-xs w-full focus:outline-none placeholder-theme-text-muted transition-all font-medium font-mono ${
+                      (hasSubmitted || touched.min_stock) && errors.min_stock
+                        ? '!border-rose-500 ring-1 ring-rose-500/20'
+                        : 'border-gray-200 dark:border-white/10 hover:border-brand-500/50 focus:border-brand-500/50'
+                    }`}
+                  />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs font-semibold text-theme-text-muted font-mono">
+                    {form.unit_of_measure || form.unit || ''}
+                  </div>
+                </div>
+                <p className="text-[10px] text-theme-text-muted mt-1 leading-tight">
+                  Umbral de alerta: Cuando la existencia en Stock sea menor o igual a este valor, el sistema marcará el ingrediente con estado "Stock bajo".
+                </p>
+                {(hasSubmitted || touched.min_stock) && errors.min_stock && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 animate-fadeIn">
+                    {errors.min_stock}
+                  </p>
+                )}
+              </div>
+
+              {/* 6. Notas opcionales */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider block">

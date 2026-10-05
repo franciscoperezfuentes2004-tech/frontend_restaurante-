@@ -13,6 +13,19 @@ export const ingredientSchema = z.object({
     .refine(val => String(val).trim().length > 0, 'Debes seleccionar una categoría'),
   unit: z.union([z.string(), z.number()], { required_error: 'La unidad de medida es obligatoria' })
     .refine(val => String(val).trim().length > 0, 'Debes seleccionar una unidad de medida'),
+  min_stock: z.union([z.string(), z.number()])
+    .optional()
+    .nullable()
+    .refine(val => {
+      if (val === undefined || val === null || val === '') return true
+      const num = Number(val)
+      return !isNaN(num) && num >= 0
+    }, 'El stock mínimo debe ser mayor o igual a 0')
+    .refine(val => {
+      if (val === undefined || val === null || val === '') return true
+      const num = Number(val)
+      return num <= 999999.99
+    }, 'El stock mínimo no puede superar 999,999.99'),
   notes: z.string()
     .max(250, 'Las notas no pueden exceder 250 caracteres')
     .optional()
@@ -36,6 +49,7 @@ export const validateIngredient = (form, isCreatingCategory = false, newCategory
     supplier_id: form?.supplier_id || null,
     category: categoryVal,
     unit: unitVal,
+    min_stock: form?.min_stock !== undefined ? form.min_stock : '',
     notes: form?.notes || '',
   }
 
