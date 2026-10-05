@@ -175,6 +175,11 @@ export function Map({
 export function Marker({ longitude, latitude, color, draggable = false, onDragEnd }) {
   const map = useContext(MapContext)
   const markerRef = useRef(null)
+  const onDragEndRef = useRef(onDragEnd)
+
+  useEffect(() => {
+    onDragEndRef.current = onDragEnd
+  })
 
   const { lng, lat } = parseAndSanitizeCoords(longitude, latitude, null, null)
   const markerColor = color || 'var(--theme-primary, var(--color-primario, #7c3aed))'
@@ -203,10 +208,12 @@ export function Marker({ longitude, latitude, color, draggable = false, onDragEn
 
     markerRef.current = marker
 
-    if (draggable && onDragEnd) {
+    if (draggable) {
       const handleDragEnd = () => {
         const lngLat = marker.getLngLat()
-        onDragEnd({ lngLat: { lng: lngLat.lng, lat: lngLat.lat } })
+        if (onDragEndRef.current) {
+          onDragEndRef.current({ lngLat: { lng: lngLat.lng, lat: lngLat.lat } })
+        }
       }
       marker.on('dragend', handleDragEnd)
     }
@@ -215,11 +222,14 @@ export function Marker({ longitude, latitude, color, draggable = false, onDragEn
       marker.remove()
       markerRef.current = null
     }
-  }, [map, lng, lat, markerColor, draggable])
+  }, [map, markerColor, draggable])
 
   useEffect(() => {
     if (markerRef.current && lng !== null && lat !== null) {
-      markerRef.current.setLngLat([lng, lat])
+      const current = markerRef.current.getLngLat()
+      if (Math.abs(current.lng - lng) > 0.000001 || Math.abs(current.lat - lat) > 0.000001) {
+        markerRef.current.setLngLat([lng, lat])
+      }
     }
   }, [lng, lat])
 

@@ -10,15 +10,15 @@ export default function MapaUbicacion({
   restName = 'Restaurante' 
 }) {
   const ubicacionTexto = (address || direccion || '').trim()
-  const lat = latitude ? parseFloat(latitude) : null
-  const lng = longitude ? parseFloat(longitude) : null
+  const lat = (latitude !== undefined && latitude !== null && latitude !== '' && !isNaN(Number(latitude))) ? parseFloat(latitude) : null
+  const lng = (longitude !== undefined && longitude !== null && longitude !== '' && !isNaN(Number(longitude))) ? parseFloat(longitude) : null
 
-  const hasLocation = Boolean(ubicacionTexto || (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) || mapsLink)
+  const hasLocation = Boolean(ubicacionTexto || (lat !== null && lng !== null) || mapsLink)
 
   // 1. Destino unificado y prioritario para garantizar que la vista previa y el botón apunten EXACTAMENTE al mismo lugar
   const targetQuery = useMemo(() => {
     // Si tenemos coordenadas numéricas válidas (máxima precisión de geolocalización)
-    if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+    if (lat !== null && lng !== null) {
       return `${lat},${lng}`
     }
     // Si tenemos dirección en texto (ej. "hacienda de cabañas, guerrero")
@@ -58,6 +58,10 @@ export default function MapaUbicacion({
 
   // 3. URL para el botón CÓMO LLEGAR (Google Maps Navigation con la misma ubicación exacta)
   const directionsUrl = useMemo(() => {
+    // Si hay coordenadas exactas, SIEMPRE navegar a esas coordenadas exactas
+    if (lat !== null && lng !== null) {
+      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${lat},${lng}`)}`
+    }
     if (mapsLink && typeof mapsLink === 'string') {
       if (mapsLink.includes('/dir/') || mapsLink.includes('destination=')) {
         return mapsLink
@@ -67,7 +71,7 @@ export default function MapaUbicacion({
       }
     }
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetQuery)}`
-  }, [mapsLink, targetQuery])
+  }, [lat, lng, mapsLink, targetQuery])
 
   if (!hasLocation) {
     return (

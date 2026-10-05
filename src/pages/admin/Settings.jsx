@@ -773,11 +773,24 @@ export default function Settings() {
   }
 
   const geocodeAddressAndOpenMap = async () => {
+    // Si ya existen coordenadas válidas fijadas, abrir directamente sin sobreescribir
+    if (pinCoords && pinCoords.lat && pinCoords.lng && !isNaN(pinCoords.lat) && !isNaN(pinCoords.lng)) {
+      setIsMapModalOpen(true)
+      return
+    }
+    if (latitude && longitude && !isNaN(Number(latitude)) && !isNaN(Number(longitude))) {
+      setPinCoords({ lat: parseFloat(latitude), lng: parseFloat(longitude) })
+      setIsMapModalOpen(true)
+      return
+    }
+
     setIsGeocoding(true)
     try {
       const coords = await resolveAddressCoords()
       if (coords) {
         setPinCoords(coords)
+        setLatitude(coords.lat)
+        setLongitude(coords.lng)
       }
     } catch (error) {
       console.error('Error obteniendo ubicación para radio de entrega:', error)
@@ -788,6 +801,18 @@ export default function Settings() {
   }
 
   const generateMapView = async () => {
+    // Si ya existen coordenadas previamente guardadas o seleccionadas, abrir directamente sin sobreescribir con Nominatim
+    if (pinCoords && pinCoords.lat && pinCoords.lng && !isNaN(pinCoords.lat) && !isNaN(pinCoords.lng)) {
+      setIsLocationModalOpen(true)
+      return
+    }
+    if (latitude && longitude && !isNaN(Number(latitude)) && !isNaN(Number(longitude))) {
+      setPinCoords({ lat: parseFloat(latitude), lng: parseFloat(longitude) })
+      setIsLocationModalOpen(true)
+      return
+    }
+
+    // Solo si no hay coordenadas previas, consultar geocodificación
     setIsSearchingCoords(true)
     try {
       const coords = await resolveAddressCoords()
@@ -801,6 +826,61 @@ export default function Settings() {
     } finally {
       setIsSearchingCoords(false)
       setIsLocationModalOpen(true)
+    }
+  }
+
+  const handleRecenterFromAddress = async () => {
+    setIsSearchingCoords(true)
+    try {
+      const coords = await resolveAddressCoords()
+      if (coords) {
+        setPinCoords(coords)
+        setLatitude(coords.lat)
+        setLongitude(coords.lng)
+        setToast({ message: 'Ubicación recalculada según la dirección del formulario.', type: 'info' })
+      } else {
+        setToast({ message: 'No se encontraron coordenadas para la dirección ingresada.', type: 'warning' })
+      }
+    } catch (err) {
+      console.error('Error al geocodificar:', err)
+      setToast({ message: 'No se pudo obtener la ubicación para esa dirección.', type: 'error' })
+    } finally {
+      setIsSearchingCoords(false)
+    }
+  }
+
+  const handleConfirmExactLocation = async () => {
+    if (!pinCoords || pinCoords.lat === null || pinCoords.lng === null) {
+      setIsLocationModalOpen(false)
+      return
+    }
+    const finalLat = pinCoords.lat
+    const finalLng = pinCoords.lng
+    setLatitude(finalLat)
+    setLongitude(finalLng)
+
+    try {
+      const combinedCityState = ciudad && estado ? `${ciudad.trim()}, ${estado.trim()}` : (ciudad.trim() || estado.trim())
+      await updateSettings({
+        latitude: finalLat,
+        longitude: finalLng,
+        postal_code: postalCode.trim(),
+        street_name: streetName.trim(),
+        city_state: combinedCityState,
+        municipio: municipio.trim(),
+        delivery_radius_meters: deliveryRadius,
+        delivery_radius_km: deliveryRadius / 1000,
+      })
+      await updateConfiguracion({
+        latitude: finalLat,
+        longitude: finalLng,
+      }).catch(() => {})
+      setToast({ message: '¡Ubicación exacta guardada y sincronizada correctamente en la landing!', type: 'success' })
+    } catch (err) {
+      console.error('Error al guardar ubicación exacta:', err)
+      setToast({ message: 'Coordenadas seleccionadas. Haz clic en "Guardar cambios" en Zona de entrega para guardar.', type: 'info' })
+    } finally {
+      setIsLocationModalOpen(false)
     }
   }
 
@@ -860,6 +940,8 @@ export default function Settings() {
 
     try {
       const combinedCityState = ciudad && estado ? `${ciudad.trim()}, ${estado.trim()}` : (ciudad.trim() || estado.trim())
+      const finalLat = pinCoords?.lat ?? (latitude !== null && !isNaN(Number(latitude)) ? parseFloat(latitude) : null)
+      const finalLng = pinCoords?.lng ?? (longitude !== null && !isNaN(Number(longitude)) ? parseFloat(longitude) : null)
       const res = await updateSettings({
         postal_code: postalCode.trim(),
         street_name: streetName.trim(),
@@ -867,14 +949,25 @@ export default function Settings() {
         municipio: municipio.trim(),
         delivery_radius_meters: deliveryRadius,
         delivery_radius_km: deliveryRadius / 1000,
-        latitude: pinCoords?.lat ?? null,
-        longitude: pinCoords?.lng ?? null,
+        latitude: finalLat,
+        longitude: finalLng,
       })
+      await updateConfiguracion({
+        latitude: finalLat,
+        longitude: finalLng,
+      }).catch(() => {})
       if (res.data?.latitude && res.data?.longitude) {
+        const savedLat = parseFloat(res.data.latitude)
+        const savedLng = parseFloat(res.data.longitude)
         setPinCoords({
-          lat: parseFloat(res.data.latitude),
-          lng: parseFloat(res.data.longitude)
+          lat: savedLat,
+          lng: savedLng
         })
+        setLatitude(savedLat)
+        setLongitude(savedLng)
+      } else if (finalLat && finalLng) {
+        setLatitude(finalLat)
+        setLongitude(finalLng)
       }
       setToast({ message: 'Zona de entrega guardada correctamente', type: 'success' })
     } catch (err) {
@@ -2784,7 +2877,12 @@ export default function Settings() {
                         longitude={pinCoords.lng} 
                         latitude={pinCoords.lat} 
                         draggable={true}
-                        onDragEnd={(e) => setPinCoords({ lng: e.lngLat.lng, lat: e.lngLat.lat })}
+                        onDragEnd={(e) => {
+                          const newCoords = { lng: e.lngLat.lng, lat: e.lngLat.lat }
+                          setPinCoords(newCoords)
+                          setLatitude(newCoords.lat)
+                          setLongitude(newCoords.lng)
+                        }}
                       />
                     </Map>
                   )}
@@ -2838,14 +2936,28 @@ export default function Settings() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsLocationModalOpen(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer"
-                style={{ color: 'var(--theme-primary-contrast, #ffffff)' }}
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleRecenterFromAddress}
+                  disabled={isSearchingCoords}
+                  className="px-3 py-1.5 text-xs rounded-xl bg-white/20 hover:bg-white/30 transition-colors font-medium flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  style={{ color: 'var(--theme-primary-contrast, #ffffff)' }}
+                  title="Volver a centrar según la dirección escrita en el formulario"
+                >
+                  {isSearchingCoords ? <Loader2 size={13} className="animate-spin" /> : <Compass size={13} />}
+                  <span>Re-centrar según dirección</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsLocationModalOpen(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer"
+                  style={{ color: 'var(--theme-primary-contrast, #ffffff)' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             <div 
@@ -2856,7 +2968,7 @@ export default function Settings() {
               <div className="p-4 flex-1 relative">
                 <div className="w-full h-[400px] rounded-lg overflow-hidden relative">
                   <Map
-                    key={`modal_map_${pinCoords?.lat}_${pinCoords?.lng}`}
+                    key="exact_location_modal_map"
                     initialViewState={{
                       longitude: pinCoords?.lng ?? -99.133209,
                       latitude: pinCoords?.lat ?? 19.432608,
@@ -2869,7 +2981,12 @@ export default function Settings() {
                         longitude={pinCoords.lng} 
                         latitude={pinCoords.lat} 
                         draggable={true}
-                        onDragEnd={(e) => setPinCoords({ lng: e.lngLat.lng, lat: e.lngLat.lat })}
+                        onDragEnd={(e) => {
+                          const newCoords = { lng: e.lngLat.lng, lat: e.lngLat.lat }
+                          setPinCoords(newCoords)
+                          setLatitude(newCoords.lat)
+                          setLongitude(newCoords.lng)
+                        }}
                       />
                     )}
                   </Map>
@@ -2879,15 +2996,11 @@ export default function Settings() {
               {/* Footer Modal */}
               <div className="flex items-center justify-between p-4 border-t shrink-0 bg-black/5 dark:bg-white/5" style={{ borderColor: borderSubtle }}>
                 <span className="text-xs font-medium" style={{ color: textMuted }}>
-                  📍 Coordenadas: Lng {pinCoords?.lng?.toFixed(5) ?? '0'}, Lat {pinCoords?.lat?.toFixed(5) ?? '0'} (Arrastra el pin para ajustar)
+                  📍 Coordenadas: Lng {pinCoords?.lng?.toFixed(5) ?? '0'}, Lat {pinCoords?.lat?.toFixed(5) ?? '0'} (Arrastra el pin para colocarlo en tu local exacto)
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setLatitude(pinCoords.lat)
-                    setLongitude(pinCoords.lng)
-                    setIsLocationModalOpen(false)
-                  }}
+                  onClick={handleConfirmExactLocation}
                   style={{ backgroundColor: colorPrimario, color: primaryBtnText }}
                   className="flex items-center gap-2 hover:opacity-95 rounded-xl px-5 py-2.5 text-xs font-semibold cursor-pointer transition-all shadow-md"
                 >

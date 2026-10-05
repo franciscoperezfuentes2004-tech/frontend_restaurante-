@@ -159,8 +159,8 @@ export const getConfiguracion = () =>
           || settings.free_delivery_over
           || config.free_delivery_over
           || 0,
-        latitude: admin.latitude ?? settings.latitude ?? null,
-        longitude: admin.longitude ?? settings.longitude ?? null,
+        latitude: admin.latitude ?? settings.latitude ?? config.latitude ?? admin.lat ?? settings.lat ?? config.lat ?? null,
+        longitude: admin.longitude ?? settings.longitude ?? config.longitude ?? admin.lng ?? settings.lng ?? config.lng ?? admin.lon ?? settings.lon ?? config.lon ?? null,
         delivery_radius_meters: admin.delivery_radius_meters
           || settings.delivery_radius_meters
           || 3000,
