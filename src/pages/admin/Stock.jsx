@@ -1718,19 +1718,22 @@ export default function Stock() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setEntryForm(p => ({ ...p, hasExpiryDate: !p.hasExpiryDate }))}
+                    onClick={() => setEntryForm(p => ({ ...p, hasExpiryDate: !p.hasExpiryDate, expiry_date: p.hasExpiryDate ? '' : p.expiry_date }))}
                     className="text-xs font-semibold text-brand-400 hover:text-brand-300 cursor-pointer"
                   >
                     {entryForm.hasExpiryDate ? 'Desactivar fecha' : '+ Agregar fecha'}
                   </button>
                 </div>
                 {entryForm.hasExpiryDate && (
-                  <input
-                    type="date"
-                    min={getTodayString()}
+                  <DatePicker
                     value={entryForm.expiry_date}
-                    onChange={e => setEntryForm(p => ({ ...p, expiry_date: e.target.value }))}
-                    className="input-subcard border border-theme-border-subtle hover:border-brand-500/50 focus:border-brand-500/50 rounded-xl px-4 py-2.5 text-theme-text text-xs w-full focus:outline-none transition-all font-medium"
+                    onChange={val => setEntryForm(p => ({ ...p, expiry_date: val }))}
+                    placeholder="Seleccionar fecha de caducidad..."
+                    minDate={getTodayString()}
+                    fullWidth={true}
+                    customPrefix=""
+                    className="w-full"
+                    inputBg={bgSubcard}
                   />
                 )}
               </div>
@@ -1910,19 +1913,22 @@ export default function Stock() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setAdjustForm(p => ({ ...p, hasExpiryDate: !p.hasExpiryDate }))}
+                    onClick={() => setAdjustForm(p => ({ ...p, hasExpiryDate: !p.hasExpiryDate, expiry_date: p.hasExpiryDate ? '' : p.expiry_date }))}
                     className="text-xs font-semibold text-brand-400 hover:text-brand-300 cursor-pointer"
                   >
-                    {adjustForm.hasExpiryDate ? 'Desactivar' : '+ Cambiar fecha'}
+                    {adjustForm.hasExpiryDate ? 'Desactivar fecha' : '+ Cambiar fecha'}
                   </button>
                 </div>
                 {adjustForm.hasExpiryDate && (
-                  <input
-                    type="date"
-                    min={getTodayString()}
+                  <DatePicker
                     value={adjustForm.expiry_date}
-                    onChange={e => setAdjustForm(p => ({ ...p, expiry_date: e.target.value }))}
-                    className="input-subcard border border-theme-border-subtle hover:border-brand-500/50 focus:border-brand-500/50 rounded-xl px-4 py-2.5 text-theme-text text-xs w-full focus:outline-none transition-all font-medium"
+                    onChange={val => setAdjustForm(p => ({ ...p, expiry_date: val }))}
+                    placeholder="Seleccionar fecha de caducidad..."
+                    minDate={getTodayString()}
+                    fullWidth={true}
+                    customPrefix=""
+                    className="w-full"
+                    inputBg={bgSubcard}
                   />
                 )}
               </div>
