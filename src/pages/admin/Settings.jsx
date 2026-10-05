@@ -456,12 +456,47 @@ export default function Settings() {
         const loaded = d.schedule
         const full = DAYS.map(day => {
           const found = loaded.find(s => s.day === day)
-          return found ? {
-            day: found.day,
-            active: !!(found.active ?? found.is_active ?? true),
-            open: found.open ?? '13:00',
-            close: found.close ?? '23:00'
-          } : { day, active: true, open: '13:00', close: '23:00' }
+          if (!found) {
+            return { day, active: day !== 'Domingo', open: '13:00', close: '23:00' }
+          }
+
+          let active = true
+          if (found.active !== undefined && found.active !== null) {
+            active = Boolean(found.active)
+          } else if (found.is_active !== undefined && found.is_active !== null) {
+            active = Boolean(found.is_active)
+          } else if (typeof found.open === 'boolean') {
+            active = found.open
+          }
+
+          let openTime = '13:00'
+          if (typeof found.open === 'string' && found.open.includes(':')) {
+            openTime = found.open
+          } else if (typeof found.start === 'string' && found.start.includes(':')) {
+            openTime = found.start
+          } else if (typeof found.apertura === 'string' && found.apertura.includes(':')) {
+            openTime = found.apertura
+          } else if (typeof found.desde === 'string' && found.desde.includes(':')) {
+            openTime = found.desde
+          }
+
+          let closeTime = '23:00'
+          if (typeof found.close === 'string' && found.close.includes(':')) {
+            closeTime = found.close
+          } else if (typeof found.end === 'string' && found.end.includes(':')) {
+            closeTime = found.end
+          } else if (typeof found.cierre === 'string' && found.cierre.includes(':')) {
+            closeTime = found.cierre
+          } else if (typeof found.hasta === 'string' && found.hasta.includes(':')) {
+            closeTime = found.hasta
+          }
+
+          return {
+            day: found.day || day,
+            active,
+            open: openTime,
+            close: closeTime
+          }
         })
         setSchedule(full)
       }
@@ -650,7 +685,9 @@ export default function Settings() {
         active: s.active ? 1 : 0,
         is_active: s.active ? 1 : 0,
         open: s.open,
-        close: s.close
+        close: s.close,
+        start: s.open,
+        end: s.close
       }))
 
       await Promise.all([
@@ -1006,12 +1043,12 @@ export default function Settings() {
             return (
               <div 
                 key={item.day} 
-                className={`bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 max-md:px-3 max-md:py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-200 shadow-xs ${
+                className={`bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-200 shadow-xs ${
                   !item.active ? 'opacity-40' : ''
                 }`}
                 style={{ backgroundColor: isLight ? '#FFFFFF' : 'var(--theme-surface)', borderColor: isLight ? '#cbd5e1' : 'var(--theme-border-subtle)' }}
               >
-                <div className="flex items-center gap-3 w-40">
+                <div className="flex items-center gap-3 shrink-0">
                   <button 
                     type="button"
                     onClick={() => handleDayToggle(index)} 
@@ -1021,12 +1058,12 @@ export default function Settings() {
                     <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${item.active ? 'translate-x-4' : 'translate-x-0'}`} />
                   </button>
 
-                  <span className="font-bold text-xs sm:text-sm" style={{ color: textColor || 'var(--theme-text)' }}>{item.day}</span>
+                  <span className="font-bold text-xs sm:text-sm min-w-[72px]" style={{ color: textColor || 'var(--theme-text)' }}>{item.day}</span>
                 </div>
 
-                <div className="flex items-center gap-3 sm:gap-4 max-md:grid max-md:grid-cols-1 max-md:gap-3 max-md:w-full max-md:mt-2">
-                  <div className="flex items-center gap-2 w-full sm:w-44 md:w-48 shrink-0">
-                    <span className="text-xs font-semibold w-6 shrink-0" style={{ color: textSubtle || 'var(--theme-text-muted)' }}>De:</span>
+                <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full sm:w-auto sm:min-w-[280px] sm:max-w-[340px]">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs font-semibold shrink-0 w-5 sm:w-6" style={{ color: textSubtle || 'var(--theme-text-muted)' }}>De:</span>
                     <div className="flex-1 min-w-0">
                       <TimePicker
                         disabled={!item.active}
@@ -1036,8 +1073,8 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-44 md:w-48 shrink-0">
-                    <span className="text-xs font-semibold w-6 shrink-0" style={{ color: textSubtle || 'var(--theme-text-muted)' }}>A:</span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs font-semibold shrink-0 w-5 sm:w-6" style={{ color: textSubtle || 'var(--theme-text-muted)' }}>A:</span>
                     <div className="flex-1 min-w-0">
                       <TimePicker
                         disabled={!item.active}

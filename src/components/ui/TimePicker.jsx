@@ -117,7 +117,9 @@ export default function TimePicker({
     }
   }, [open, value, findSlotIndex])
 
-  const displayValue = value ? formatTime(value) : null
+  const displayValue = (typeof value === 'string' && value.trim() && value.includes(':'))
+    ? formatTime(value)
+    : null
 
   return (
     <div
@@ -131,7 +133,7 @@ export default function TimePicker({
         onClick={() => !disabled && setOpen(v => !v)}
         className={
           fullWidth
-            ? `input-subcard bg-slate-100 dark:bg-white/5 w-full min-w-[130px] h-11 px-3 sm:px-4 py-2.5 flex items-center justify-between rounded-xl transition-all duration-200 select-none border font-medium ${
+            ? `input-subcard bg-slate-100 dark:bg-white/5 w-full h-11 px-2.5 sm:px-3 py-2 flex items-center justify-between rounded-xl transition-all duration-200 select-none border font-medium ${
                 hasError
                   ? '!border-rose-500 ring-1 ring-rose-500/20'
                   : open
@@ -156,18 +158,18 @@ export default function TimePicker({
           color: 'var(--theme-text)',
         }}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          <Clock size={15} className="text-theme-text-muted shrink-0" />
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
+          <Clock size={14} className="text-theme-text-muted shrink-0" />
           <span
-            className="text-xs font-semibold whitespace-nowrap"
+            className="text-[11px] sm:text-xs font-semibold whitespace-nowrap truncate"
             style={{ color: displayValue ? 'var(--theme-text)' : 'var(--theme-text-muted)' }}
           >
             {displayValue || placeholder}
           </span>
         </div>
         <ChevronDown
-          size={14}
-          className={`text-theme-text-muted shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          size={13}
+          className={`text-theme-text-muted shrink-0 ml-1 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -228,12 +230,15 @@ export default function TimePicker({
   )
 }
 
-// Formatea "14:30" → "2:30 p. m."
+// Formatea "14:30" → "2:30 p. m." o "14:30:00" → "2:30 p. m."
 function formatTime(slot) {
-  if (!slot || typeof slot !== 'string') return slot
-  const [hStr, mStr] = slot.split(':')
+  if (!slot || typeof slot !== 'string') return ''
+  const trimmed = slot.trim()
+  if (!trimmed || !trimmed.includes(':')) return trimmed
+  const [hStr, mStr] = trimmed.split(':')
   const h24 = parseInt(hStr, 10)
-  const m = mStr || '00'
+  if (isNaN(h24)) return trimmed
+  const m = mStr ? mStr.substring(0, 2) : '00'
   const period = h24 >= 12 ? 'p. m.' : 'a. m.'
   let h12 = h24 % 12
   if (h12 === 0) h12 = 12
