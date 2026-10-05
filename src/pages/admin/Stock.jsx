@@ -28,7 +28,6 @@ import {
   adminGetStock,
   adminPostStockEntry,
   adminPostStockAdjustment,
-  adminPatchStockMin,
   adminGetStockMovements,
   adminGetStockMetrics
 } from '../../api/stock'
@@ -183,23 +182,17 @@ export default function Stock() {
     return isFinite(res) ? res.toFixed(2) : '0.00'
   }, [entryForm.quantity, entryForm.cost_total])
 
-  // Adjustment Modal State ("Ajustar / Merma")
+  // Merma Modal State ("Registrar Merma")
   const [adjustModalOpen, setAdjustModalOpen] = useState(false)
   const [adjustItem, setAdjustItem] = useState(null)
   const [adjustForm, setAdjustForm] = useState({
-    type: 'ajuste', // 'ajuste' or 'merma'
+    type: 'merma',
     quantity: '',
     hasExpiryDate: false,
     expiry_date: '',
     notes: ''
   })
   const [adjustSubmitting, setAdjustSubmitting] = useState(false)
-
-  // Stock Min Inline Modal State
-  const [minModalOpen, setMinModalOpen] = useState(false)
-  const [minItem, setMinItem] = useState(null)
-  const [minQtyInput, setMinQtyInput] = useState('')
-  const [minSubmitting, setMinSubmitting] = useState(false)
 
   // 1. Debounce search input (400ms) con .trim() y mínimo 3 caracteres
   useEffect(() => {
@@ -429,13 +422,13 @@ export default function Stock() {
     }
   }
 
-  // Open Adjust Modal
+  // Open Merma Modal
   const handleOpenAdjustModal = (item) => {
     const today = getTodayString()
     const itemExpiry = item.expiry_date || ''
     setAdjustItem(item)
     setAdjustForm({
-      type: 'ajuste',
+      type: 'merma',
       quantity: '',
       hasExpiryDate: Boolean(itemExpiry && itemExpiry >= today),
       expiry_date: (itemExpiry && itemExpiry >= today) ? itemExpiry : '',
@@ -445,24 +438,30 @@ export default function Stock() {
     fetchReferences()
   }
 
-  // Submit Adjustment Form
+  // Submit Merma Form
   const handleSubmitAdjustment = async (e) => {
     if (e) e.preventDefault()
 
     if (!adjustItem || !adjustForm.quantity) {
-      setToast({ message: "La cantidad es obligatoria", type: "error" })
+      setToast({ message: "La cantidad de merma es obligatoria", type: "error" })
       return
     }
 
     const qtyNumber = parseFloat(adjustForm.quantity)
     if (isNaN(qtyNumber) || qtyNumber <= 0) {
-      setToast({ message: "La cantidad debe ser un número positivo mayor a 0", type: "error" })
+      setToast({ message: "La cantidad de merma debe ser un número positivo mayor a 0", type: "error" })
+      return
+    }
+
+    const currentQty = parseFloat(adjustItem.quantity ?? 0)
+    if (qtyNumber > currentQty) {
+      setToast({ message: `La merma no puede superar la existencia actual (${currentQty} ${adjustItem.unit})`, type: "error" })
       return
     }
 
     const trimmedNotes = (adjustForm.notes || '').trim()
-    if (adjustForm.type === 'merma' && !trimmedNotes) {
-      setToast({ message: "Las notas u observaciones son obligatorias al registrar una merma", type: "error" })
+    if (!trimmedNotes) {
+      setToast({ message: "El motivo u observaciones son obligatorios al registrar una merma", type: "error" })
       return
     }
 
@@ -477,56 +476,24 @@ export default function Stock() {
     const payload = {
       ingredient_id: adjustItem.ingredient_id,
       quantity: qtyNumber,
-      type: adjustForm.type || 'ajuste',
-      notes: trimmedNotes ? trimmedNotes.slice(0, 250) : null,
+      type: 'merma',
+      notes: trimmedNotes.slice(0, 250),
       expiry_date: adjustForm.hasExpiryDate && adjustForm.expiry_date ? adjustForm.expiry_date : null
     }
 
     try {
       setAdjustSubmitting(true)
       await adminPostStockAdjustment(payload)
-      setToast({ message: "Ajuste de inventario registrado correctamente", type: "success" })
+      setToast({ message: "Merma registrada correctamente", type: "success" })
       setAdjustModalOpen(false)
       setAdjustItem(null)
       fetchStockData()
     } catch (err) {
-      console.error("Error al registrar ajuste:", err)
-      const msg = err.response?.data?.message || "Error al registrar el ajuste de inventario"
+      console.error("Error al registrar merma:", err)
+      const msg = err.response?.data?.message || (err.response?.data?.errors?.quantity?.[0]) || "Error al registrar la merma de inventario"
       setToast({ message: msg, type: "error" })
     } finally {
       setAdjustSubmitting(false)
-    }
-  }
-
-  // Open Stock Min Modal
-  const handleOpenMinModal = (item) => {
-    setMinItem(item)
-    setMinQtyInput(String(item.min_quantity ?? 0))
-    setMinModalOpen(true)
-  }
-
-  // Submit Stock Min
-  const handleSubmitMin = async (e) => {
-    if (e) e.preventDefault()
-
-    if (!minItem || minQtyInput === '') {
-      setToast({ message: "La cantidad mínima es obligatoria", type: "error" })
-      return
-    }
-
-    try {
-      setMinSubmitting(true)
-      await adminPatchStockMin(minItem.ingredient_id, { min_quantity: Number(minQtyInput) })
-      setToast({ message: "Stock mínimo actualizado con éxito", type: "success" })
-      setMinModalOpen(false)
-      setMinItem(null)
-      fetchStockData()
-    } catch (err) {
-      console.error("Error actualizando stock mínimo:", err)
-      const msg = err.response?.data?.message || "No se pudo actualizar el stock mínimo"
-      setToast({ message: msg, type: "error" })
-    } finally {
-      setMinSubmitting(false)
     }
   }
 
@@ -951,22 +918,13 @@ export default function Stock() {
                             {/* Acciones */}
                             <td className="px-4 py-3.5 text-right print:hidden">
                               <div className="flex items-center justify-end gap-1.5">
-                                {/* Botón Ajustar */}
+                                {/* Botón Registrar Merma */}
                                 <button
                                   onClick={() => handleOpenAdjustModal(item)}
-                                  className="bg-theme-input hover:bg-theme-surface text-theme-text hover:text-brand-600 dark:hover:text-brand-400 border border-theme-border-subtle text-[11px] font-semibold px-2.5 py-1 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
-                                  title="Ajustar inventario o registrar merma"
+                                  className="bg-theme-input hover:bg-theme-surface text-theme-text hover:text-rose-600 dark:hover:text-rose-400 border border-theme-border-subtle text-[11px] font-semibold px-3 py-1 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
+                                  title="Registrar merma o desperdicio"
                                 >
-                                  Ajustar
-                                </button>
-
-                                {/* Botón Mínimo */}
-                                <button
-                                  onClick={() => handleOpenMinModal(item)}
-                                  className="bg-theme-input hover:bg-theme-surface text-theme-text-muted hover:text-theme-text border border-theme-border-subtle text-[11px] font-medium px-2 py-1 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
-                                  title="Modificar Stock Mínimo"
-                                >
-                                  Mínimo
+                                  Merma
                                 </button>
                               </div>
                             </td>
@@ -1815,7 +1773,7 @@ export default function Stock() {
                 color: 'var(--theme-primary-contrast, #ffffff)' 
               }}
             >
-              <h3 className="font-bold text-base" style={{ color: 'var(--theme-primary-contrast, #ffffff)' }}>Ajustar Inventario: {adjustItem.ingredient_name}</h3>
+              <h3 className="font-bold text-base" style={{ color: 'var(--theme-primary-contrast, #ffffff)' }}>Registrar Merma: {adjustItem.ingredient_name}</h3>
               <button 
                 type="button"
                 onClick={() => setAdjustModalOpen(false)}
@@ -1835,74 +1793,49 @@ export default function Stock() {
               
               {/* Info Cantidad Actual */}
               <div className="input-subcard border border-theme-border-subtle rounded-xl p-3 flex justify-between items-center text-xs">
-                <span className="text-theme-text-muted">Existencia Actual:</span>
+                <span className="text-theme-text-muted">Existencia Actual en Almacén:</span>
                 <span className="text-theme-text font-mono font-bold text-sm">{adjustItem.quantity} {adjustItem.unit}</span>
               </div>
 
-              {/* Tipo de movimiento */}
+              {/* Cantidad de merma */}
               <div>
-                <label className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 block">
-                  Tipo de Movimiento <span className="text-red-400">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de Movimiento">
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={adjustForm.type === 'ajuste'}
-                    onClick={() => setAdjustForm(p => ({ ...p, type: 'ajuste' }))}
-                    style={
-                      adjustForm.type === 'ajuste'
-                        ? { backgroundColor: colorPrimario, color: '#ffffff' }
-                        : { backgroundColor: `${colorPrimario}15`, color: colorPrimario }
-                    }
-                    className="py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none shadow-xs"
-                  >
-                    Ajuste Manual
-                  </button>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={adjustForm.type === 'merma'}
-                    onClick={() => setAdjustForm(p => ({ ...p, type: 'merma' }))}
-                    style={
-                      adjustForm.type === 'merma'
-                        ? { backgroundColor: colorPrimario, color: '#ffffff' }
-                        : { backgroundColor: `${colorPrimario}15`, color: colorPrimario }
-                    }
-                    className="py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none shadow-xs"
-                  >
-                    Merma / Desperdicio
-                  </button>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider block">
+                    Cantidad de Merma / Desperdicio <span className="text-red-400">*</span>
+                  </label>
+                  <span className="text-[10px] font-semibold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20 font-mono">
+                    Se descontará ({adjustItem.unit})
+                  </span>
                 </div>
-              </div>
-
-              {/* Cantidad a modificar */}
-              <div>
-                <label className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 block">
-                  {adjustForm.type === 'merma' ? 'Cantidad de Merma (se descontará)' : 'Nueva Cantidad / Diferencia'} <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={adjustForm.quantity}
-                  onKeyDown={(e) => {
-                    if (e.key === '-' || e.key === 'Minus') {
-                      e.preventDefault()
-                    }
-                  }}
-                  onChange={(e) => {
-                    const val = e.target.value
-                    if (val.includes('-')) {
-                      setAdjustForm(p => ({ ...p, quantity: val.replace(/-/g, '') }))
-                    } else {
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0.0001"
+                    max={adjustItem.quantity}
+                    step="any"
+                    required
+                    value={adjustForm.quantity}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'Minus' || e.key === 'e' || e.key === 'E') {
+                        e.preventDefault()
+                      }
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/-/g, '')
                       setAdjustForm(p => ({ ...p, quantity: val }))
-                    }
-                  }}
-                  placeholder={adjustForm.type === 'merma' ? 'Ej. 2.0' : 'Ej. 15.0'}
-                  className="input-subcard border border-theme-border-subtle hover:border-brand-500/50 focus:border-brand-500/50 rounded-xl px-4 py-2.5 text-theme-text text-xs w-full focus:outline-none transition-all font-medium"
-                />
+                    }}
+                    placeholder="Ej. 1.5"
+                    className="input-subcard border border-theme-border-subtle hover:border-brand-500/50 focus:border-brand-500/50 rounded-xl pl-4 pr-16 py-2.5 text-theme-text text-xs w-full focus:outline-none transition-all font-medium font-mono"
+                  />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs font-semibold text-theme-text-muted font-mono">
+                    {adjustItem.unit}
+                  </div>
+                </div>
+                {parseFloat(adjustForm.quantity || 0) > adjustItem.quantity && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 animate-fadeIn">
+                    La cantidad no puede superar la existencia disponible ({adjustItem.quantity} {adjustItem.unit})
+                  </p>
+                )}
               </div>
 
               {/* Caducidad Opcional */}
@@ -1933,11 +1866,11 @@ export default function Stock() {
                 )}
               </div>
 
-              {/* Notas (Requeridas para merma) */}
+              {/* Motivo / Observaciones (Requerido para merma) */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider block">
-                    Notas / Observaciones {adjustForm.type === 'merma' ? <span className="text-red-400">* (Requerido)</span> : '(Opcional)'}
+                    Motivo / Observaciones de la Merma <span className="text-red-400">* (Requerido)</span>
                   </label>
                   <span className={`text-[10px] font-mono transition-colors ${
                     (adjustForm.notes || '').length >= 250 ? 'text-amber-500 font-bold' : 'text-theme-text-muted'
@@ -1948,11 +1881,11 @@ export default function Stock() {
                 <textarea
                   rows={2}
                   maxLength={250}
-                  required={adjustForm.type === 'merma'}
+                  required
                   value={adjustForm.notes}
                   onBlur={() => setAdjustForm(p => ({ ...p, notes: (p.notes || '').trim() }))}
                   onChange={e => setAdjustForm(p => ({ ...p, notes: e.target.value }))}
-                  placeholder={adjustForm.type === 'merma' ? 'Ej. Producto caducado, empaque roto...' : 'Ej. Conteo físico de inventario...'}
+                  placeholder="Ej. Producto caducado, empaque dañado, descomposición, caída en cocina..."
                   className="input-subcard border border-theme-border-subtle hover:border-brand-500/50 focus:border-brand-500/50 rounded-xl px-4 py-2 text-theme-text text-xs w-full focus:outline-none resize-none transition-all font-medium"
                 />
               </div>
@@ -1975,90 +1908,15 @@ export default function Stock() {
                     adjustSubmitting || 
                     !adjustForm.quantity || 
                     parseFloat(adjustForm.quantity) <= 0 || 
-                    (adjustForm.type === 'merma' && !adjustForm.notes.trim())
+                    parseFloat(adjustForm.quantity) > adjustItem.quantity ||
+                    !adjustForm.notes.trim()
                   }
-                  className="bg-brand-600 hover:bg-brand-500 text-theme-text text-xs font-bold px-5 py-2 rounded-xl transition-all disabled:opacity-40 cursor-pointer max-md:flex-1"
+                  className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-5 py-2 rounded-xl transition-all disabled:opacity-40 cursor-pointer max-md:flex-1"
                 >
-                  {adjustSubmitting ? "Guardando..." : "Guardar Ajuste"}
+                  {adjustSubmitting ? "Registrando..." : "Registrar Merma"}
                 </button>
               </div>
 
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Modal 3: Actualizar Stock Mínimo */}
-      {minModalOpen && minItem && createPortal(
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/75 backdrop-blur-sm animate-fadeIn"
-          onClick={() => setMinModalOpen(false)}
-        >
-          <div 
-            className="rounded-2xl shadow-2xl w-full max-w-sm animate-scaleIn flex flex-col max-h-[90vh] overflow-hidden text-left"
-            style={{ backgroundColor: bgCard }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div 
-              className="flex items-center justify-between px-6 py-4 shrink-0 transition-colors border-t border-x border-b"
-              style={{ 
-                backgroundColor: colorPrimario || 'var(--theme-primary)', 
-                borderColor: colorPrimario || 'var(--theme-primary)',
-                color: 'var(--theme-primary-contrast, #ffffff)' 
-              }}
-            >
-              <h3 className="font-bold text-sm" style={{ color: 'var(--theme-primary-contrast, #ffffff)' }}>Stock Mínimo: {minItem.ingredient_name}</h3>
-              <button 
-                type="button"
-                onClick={() => setMinModalOpen(false)}
-                className="w-8 h-8 rounded-lg hover:bg-white/20 flex items-center justify-center transition-all cursor-pointer"
-                style={{ color: 'var(--theme-primary-contrast, #ffffff)' }}
-              >
-                <X size={15}/>
-              </button>
-            </div>
-
-            <form 
-              onSubmit={handleSubmitMin} 
-              className="flex flex-col flex-1 min-h-0 overflow-hidden border-x border-b border-theme-border-subtle rounded-b-2xl"
-              style={{ borderColor: borderSubtle }}
-            >
-              <div className="p-6 max-md:p-4 space-y-4 overflow-y-auto flex-1 scrollbar-thin">
-                <div>
-                  <label className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 block">
-                    Nueva Cantidad Mínima ({minItem.unit}) <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    value={minQtyInput}
-                    onChange={e => setMinQtyInput(e.target.value)}
-                    placeholder="0.00"
-                    className="input-subcard border border-theme-border-subtle rounded-xl px-4 py-2.5 text-theme-text font-mono text-sm w-full focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end p-4 max-md:p-3 shrink-0 border-t border-theme-border-subtle" style={{ backgroundColor: bgCard }}>
-                <button
-                  type="button"
-                  onClick={() => setMinModalOpen(false)}
-                  style={{ backgroundColor: bgSubcard, borderColor: borderSubtle, color: textColor }}
-                  className="border rounded-xl px-4 py-2 text-xs font-semibold cursor-pointer transition-all hover:opacity-80 max-md:flex-1"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={minSubmitting || minQtyInput === ''}
-                  className="bg-brand-600 hover:bg-brand-500 text-theme-text text-xs font-bold px-4 py-2 rounded-xl transition-all disabled:opacity-40 cursor-pointer max-md:flex-1"
-                >
-                  {minSubmitting ? "..." : "Actualizar"}
-                </button>
-              </div>
             </form>
           </div>
         </div>,
