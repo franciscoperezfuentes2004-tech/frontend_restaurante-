@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { 
   Search, UserPlus, Phone, ShieldAlert, Check, X, Edit, Trash2, 
-  Users, User, Lock, UserX, Mail, Eye, EyeOff, KeyRound, Power,
+  Users, User, Lock, UserX, Mail, Eye, EyeOff, Power,
   ChevronLeft, ChevronRight, RefreshCw, Download, FileText
 } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
@@ -21,8 +21,7 @@ import {
   adminCreateUser,
   adminUpdateUser,
   adminDeleteUser,
-  adminToggleUserStatus,
-  adminResetUserPassword
+  adminToggleUserStatus
 } from '../../api/users'
 import { validateUser } from '../../validators/userValidator'
 
@@ -63,7 +62,6 @@ export default function UsersRoles() {
   const { bgCard, bgSubcard, bgTable, borderSubtle, cardShadow, textColor } = useTheme()
   const { user: authUser } = useAuth()
   const authRole = (authUser?.role || authUser?.role_name || authUser?.roleId || '').toLowerCase().replace('-', '_')
-  const canResetPassword = authRole === 'admin' || authRole === 'administrador' || authRole === 'super_admin' || authRole === 'superadmin'
 
   // Metric Stats
   const [statsData, setStatsData] = useState({
@@ -102,7 +100,6 @@ export default function UsersRoles() {
   const [editingUser, setEditingUser] = useState(null)
   const [showFormModal, setShowFormModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [resettingPassword, setResettingPassword] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
 
   // Creation roles hierarchy based on authenticated user's role
@@ -339,7 +336,7 @@ export default function UsersRoles() {
 
     const { name: cleanName, phone: cleanPhone, email: cleanEmail, role: cleanRole } = validation.data
 
-    // 5. Validación de Contraseña
+    // 5. Validación de Contraseña (Únicamente requerida al crear usuario)
     if (!editingUser) {
       if (!password.trim()) {
         setFormError('Ingrese una contraseña para la cuenta.')
@@ -349,25 +346,17 @@ export default function UsersRoles() {
         setFormError('La contraseña debe cumplir con todos los parámetros de seguridad obligatorios.')
         return
       }
-    } else {
-      if (password.trim() && !isPasswordValid) {
-        setFormError('La nueva contraseña ingresada debe cumplir con todos los parámetros de seguridad.')
-        return
-      }
     }
 
     try {
       setSubmitting(true)
       if (editingUser) {
-        // Edit User
+        // Edit User (No incluye contraseña - asignación manual eliminada por seguridad)
         const payload = {
           name: cleanName,
           phone: cleanPhone,
           email: cleanEmail,
           role: cleanRole
-        }
-        if (password.trim()) {
-          payload.password = password
         }
 
         await adminUpdateUser(editingUser.id, payload)
@@ -400,36 +389,7 @@ export default function UsersRoles() {
   }
 
   // Handle Password Reset in Edit Modal
-  const handleResetPasswordInModal = async () => {
-    if (!editingUser) return
-    if (!password.trim()) {
-      setFormError('Ingrese la nueva contraseña en el campo correspondiente antes de restablecer.')
-      return
-    }
-    if (!isPasswordValid) {
-      setFormError('La nueva contraseña debe cumplir con los 6 parámetros de seguridad obligatorios.')
-      return
-    }
 
-    try {
-      setResettingPassword(true)
-      setFormError('')
-      const payload = { password: password.trim() }
-      const res = await adminResetUserPassword(editingUser.id, payload)
-      const msg = res.data?.message || `Contraseña de "${editingUser.name}" restablecida correctamente.`
-      setToast({ message: msg, type: 'success' })
-      setPassword('')
-      setShowPassword(false)
-    } catch (err) {
-      console.error("Error al restablecer contraseña:", err)
-      const serverMsg = err.response?.data?.message
-      const validationErrs = err.response?.data?.errors ? Object.values(err.response.data.errors).flat().join(', ') : null
-      setFormError(serverMsg || validationErrs || 'Error al restablecer la contraseña.')
-      setToast({ message: serverMsg || validationErrs || 'Error al restablecer la contraseña', type: 'error' })
-    } finally {
-      setResettingPassword(false)
-    }
-  }
 
   // Open Edit Modal on Row Click
   const handleOpenEdit = (userItem) => {
@@ -994,31 +954,32 @@ export default function UsersRoles() {
               </div>
 
               {/* Contraseña con toggle Eye/EyeOff */}
-              <div className="space-y-1.5 text-left">
-                <label className="block text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">
-                  {editingUser ? 'Nueva Contraseña (Opcional)' : <>Contraseña <span className="text-red-500">*</span></>}
-                </label>
-                <div className="relative">
-                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={editingUser ? "Dejar en blanco para conservar actual" : "••••••••"}
-                    className="w-full input-subcard bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-10 py-2.5 text-xs text-theme-text placeholder-theme-text-muted outline-none transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer z-10 p-1"
-                    title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
+              {/* Contraseña con toggle Eye/EyeOff (Solo al crear usuario, eliminada en edición) */}
+              {!editingUser && (
+                <div className="space-y-1.5 text-left">
+                  <label className="block text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">
+                    Contraseña <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full input-subcard bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-10 py-2.5 text-xs text-theme-text placeholder-theme-text-muted outline-none transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer z-10 p-1"
+                      title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
 
-                {/* Parámetros de Seguridad Obligatorios */}
-                {(password.length > 0 || !editingUser) && (
+                  {/* Parámetros de Seguridad Obligatorios */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-[11px] font-medium pt-2">
                     {passwordRules.map((rule) => {
                       const isValid = rule.valid
@@ -1036,26 +997,10 @@ export default function UsersRoles() {
                       )
                     })}
                   </div>
-                )}
 
-                <p className="text-[11px] text-theme-text-muted mt-1">
-                  El empleado podrá iniciar sesión con su correo electrónico o número de teléfono.
-                </p>
-              </div>
-
-              {/* Botón Reset Contraseña en Edición (Visible solo para admin/super_admin) */}
-              {editingUser && canResetPassword && (
-                <div className="pt-2 border-t border-theme-border-subtle flex items-center justify-between">
-                  <span className="text-xs text-theme-text-muted font-medium">Acción Administrador</span>
-                  <button
-                    type="button"
-                    onClick={handleResetPasswordInModal}
-                    disabled={resettingPassword}
-                    className="flex items-center gap-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <KeyRound size={13} />
-                    {resettingPassword ? 'Restableciendo...' : 'Restablecer Contraseña'}
-                  </button>
+                  <p className="text-[11px] text-theme-text-muted mt-1">
+                    El empleado podrá iniciar sesión con su correo electrónico o número de teléfono.
+                  </p>
                 </div>
               )}
 

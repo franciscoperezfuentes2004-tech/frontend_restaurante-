@@ -12,3 +12,9 @@ export const me = () =>
 export const forcePasswordChange = (new_password, new_password_confirmation) =>
   client.post('/password/force-change', { new_password, new_password_confirmation })
 
+export const forgotPassword = (email) =>
+  client.post('/password/forgot', { email })
+
+export const resetPassword = (data) =>
+  client.post('/password/reset', data)
+
