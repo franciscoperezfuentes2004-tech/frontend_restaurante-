@@ -899,7 +899,7 @@ export default function UsersRoles() {
                 <div className="space-y-0.5">
                   <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Aviso de Seguridad</p>
                   <p className="text-xs text-theme-text leading-relaxed">
-                    Las credenciales de acceso (correo/teléfono y una contraseña temporal autogenerada) serán enviadas automáticamente al correo electrónico del empleado.
+                    Las credenciales de acceso (con una contraseña temporal autogenerada) serán enviadas automáticamente al correo electrónico del empleado.
                   </p>
                 </div>
               </div>
