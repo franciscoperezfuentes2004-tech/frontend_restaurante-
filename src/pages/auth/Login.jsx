@@ -197,20 +197,31 @@ export default function Login() {
       return
     }
 
+    // Validación Regex de formato de correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(cleanEmail)) {
+      setForgotError('Ingresa un formato de correo electrónico válido.')
+      return
+    }
+
     setForgotLoading(true)
     try {
-      await forgotPassword(cleanEmail)
-      setOtpCode('')
-      setNewPassword('')
-      setConfirmPassword('')
-      setResetError('')
-      setResetSuccess('')
-      setOtpTimer(120) // Inicia en 02:00
-      setAuthView('forgot_step2')
+      const response = await forgotPassword(cleanEmail)
+      // Transición Exitosa: Únicamente si Axios retorna 200 OK
+      if (response && (response.status === 200 || response.status === 201 || !response.status)) {
+        setOtpCode('')
+        setNewPassword('')
+        setConfirmPassword('')
+        setResetError('')
+        setResetSuccess('')
+        setOtpTimer(120) // Inicia en 02:00
+        setAuthView('forgot_step2')
+      }
     } catch (err) {
       console.error('Error al solicitar recuperación:', err)
-      const msg = err.response?.data?.message || 'Error al procesar la solicitud. Intente más tarde.'
+      const msg = err.response?.data?.message || (err.response?.status === 429 ? 'Demasiados intentos. Espera un momento antes de reintentar.' : 'Error al procesar la solicitud. Intente más tarde.')
       setForgotError(msg)
+      // Bloquea el acceso; el componente NO cambia al "Paso 2"
     } finally {
       setForgotLoading(false)
     }
@@ -579,20 +590,22 @@ export default function Login() {
               </div>
 
               {forgotError && (
-                <div className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs p-3.5 rounded-xl text-center font-medium">
+                <div className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs p-3.5 rounded-xl text-center font-medium animate-fadeIn">
                   {forgotError}
                 </div>
               )}
 
-              <form onSubmit={handleForgotStep1Submit} className="space-y-5">
+              <form onSubmit={handleForgotStep1Submit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.7rem', letterSpacing: '0.1em', fontWeight: '600' }} className="block uppercase">
                     Correo Electrónico
                   </label>
                   <div style={{
-                    border: emailFocused 
-                      ? `1px solid ${brandColor}` 
-                      : '1px solid rgba(255,255,255,0.15)',
+                    border: forgotError
+                      ? '1px solid rgba(239, 68, 68, 0.6)'
+                      : emailFocused 
+                        ? `1px solid ${brandColor}` 
+                        : '1px solid rgba(255,255,255,0.15)',
                     boxShadow: emailFocused 
                       ? `0 0 12px ${brandColor}50` 
                       : 'none',
@@ -604,20 +617,28 @@ export default function Login() {
                     transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
                     transform: emailFocused ? 'scale(1.02)' : 'scale(1)'
                   }}>
-                    <Mail size={15} className="text-white/30 shrink-0" />
+                    <Mail size={15} className={forgotError ? "text-red-400 shrink-0" : "text-white/30 shrink-0"} />
                     <input
                       type="email"
                       required
                       disabled={forgotLoading}
                       placeholder="ejemplo@restaurante.com"
                       value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
+                      onChange={(e) => {
+                        setForgotEmail(e.target.value)
+                        if (forgotError) setForgotError('')
+                      }}
                       onFocus={() => setEmailFocused(true)}
                       onBlur={() => setEmailFocused(false)}
                       style={{ color: '#fff' }}
                       className="w-full text-sm focus:outline-none placeholder-white/20 bg-transparent disabled:opacity-50"
                     />
                   </div>
+                  {forgotError && (
+                    <p className="text-[11px] text-red-400 font-medium pl-1 animate-fadeIn">
+                      {forgotError}
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -634,7 +655,7 @@ export default function Login() {
                   {forgotLoading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Enviando código...</span>
+                      <span>Buscando...</span>
                     </>
                   ) : (
                     <span>Enviar código de recuperación</span>
