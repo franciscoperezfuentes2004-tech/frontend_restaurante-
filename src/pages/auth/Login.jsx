@@ -60,6 +60,18 @@ export default function Login() {
   const [restaurantName, setRestaurantName] = useState('Restaurante')
   const [emailFocused, setEmailFocused] = useState(false)
   const [passwordFocused, setPasswordFocused] = useState(false)
+  const [otpFocused, setOtpFocused] = useState(false)
+  const [newPasswordFocused, setNewPasswordFocused] = useState(false)
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false)
+
+  // Validaciones visuales con Regex para Paso 3
+  const hasMinLength    = newPassword.length >= 8
+  const hasUpper        = /[A-Z]/.test(newPassword)
+  const hasLower        = /[a-z]/.test(newPassword)
+  const hasNumber       = /\d/.test(newPassword)
+  const hasSymbol       = /[^A-Za-z0-9\s]/.test(newPassword)
+  const isMatch         = newPassword.length > 0 && newPassword === confirmPassword
+  const isPasswordValid = hasMinLength && hasUpper && hasLower && hasNumber && hasSymbol && isMatch
 
   useEffect(() => {
     const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
@@ -313,18 +325,21 @@ export default function Login() {
     setResetSuccess('')
 
     const cleanCode = otpCode.trim()
+    const cleanPassword = newPassword.trim()
+    const cleanConfirm = confirmPassword.trim()
+
     if (!cleanCode) {
       setResetError('No se encontró el código de verificación. Por favor solicita uno nuevo.')
       setAuthView('forgot_step2')
       return
     }
 
-    if (newPassword.length < 8) {
-      setResetError('La nueva contraseña debe tener al menos 8 caracteres.')
+    if (!hasMinLength || !hasUpper || !hasLower || !hasNumber || !hasSymbol) {
+      setResetError('La nueva contraseña debe cumplir con todos los requisitos de seguridad.')
       return
     }
 
-    if (newPassword !== confirmPassword) {
+    if (cleanPassword !== cleanConfirm) {
       setResetError('Las contraseñas ingresadas no coinciden.')
       return
     }
@@ -335,10 +350,10 @@ export default function Login() {
       const res = await resetPassword({
         email: cleanEmail,
         code: cleanCode,
-        password: newPassword,
-        password_confirmation: confirmPassword,
-        new_password: newPassword,
-        new_password_confirmation: confirmPassword
+        password: cleanPassword,
+        password_confirmation: cleanConfirm,
+        new_password: cleanPassword,
+        new_password_confirmation: cleanConfirm
       })
 
       const msg = res.data?.message || 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.'
@@ -827,11 +842,18 @@ export default function Login() {
                   </label>
                   <div style={{
                     borderRadius: '0.75rem',
-                    border: verifyError ? '1px solid rgba(239, 68, 68, 0.6)' : '1px solid rgba(255,255,255,0.15)',
+                    border: verifyError 
+                      ? '1px solid rgba(239, 68, 68, 0.6)' 
+                      : otpFocused
+                        ? `1px solid ${brandColor}`
+                        : '1px solid rgba(255,255,255,0.15)',
+                    boxShadow: otpFocused ? `0 0 12px ${brandColor}50` : 'none',
                     padding: '0.75rem 1rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem'
+                    gap: '0.75rem',
+                    transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+                    transform: otpFocused ? 'scale(1.02)' : 'scale(1)'
                   }}>
                     <KeyRound size={15} className={verifyError ? "text-red-400 shrink-0" : "text-white/30 shrink-0"} />
                     <input
@@ -845,8 +867,10 @@ export default function Login() {
                         setOtpCode(e.target.value.replace(/[^0-9]/g, ''))
                         if (verifyError) setVerifyError('')
                       }}
+                      onFocus={() => setOtpFocused(true)}
+                      onBlur={() => setOtpFocused(false)}
                       style={{ color: '#fff', letterSpacing: '0.25em' }}
-                      className="w-full text-center font-mono font-bold text-base focus:outline-none placeholder-white/20 bg-transparent placeholder:tracking-normal"
+                      className="w-full text-center font-mono font-bold text-base focus:outline-none placeholder-white/20 bg-transparent placeholder:tracking-normal disabled:opacity-50"
                     />
                   </div>
 
@@ -924,13 +948,20 @@ export default function Login() {
                   </label>
                   <div style={{
                     borderRadius: '0.75rem',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    border: resetError 
+                      ? '1px solid rgba(239, 68, 68, 0.6)' 
+                      : newPasswordFocused
+                        ? `1px solid ${brandColor}`
+                        : '1px solid rgba(255,255,255,0.15)',
+                    boxShadow: newPasswordFocused ? `0 0 12px ${brandColor}50` : 'none',
                     padding: '0.75rem 1rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem'
+                    gap: '0.75rem',
+                    transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+                    transform: newPasswordFocused ? 'scale(1.02)' : 'scale(1)'
                   }}>
-                    <Lock size={15} className="text-white/30 shrink-0" />
+                    <Lock size={15} className="text-white/30 shrink-0 pointer-events-none" />
                     <input
                       type={showNewPassword ? 'text' : 'password'}
                       required
@@ -942,8 +973,10 @@ export default function Login() {
                         setNewPassword(e.target.value)
                         if (resetError) setResetError('')
                       }}
+                      onFocus={() => setNewPasswordFocused(true)}
+                      onBlur={() => setNewPasswordFocused(false)}
                       style={{ color: '#fff' }}
-                      className="w-full text-sm focus:outline-none placeholder-white/20 bg-transparent"
+                      className="w-full text-sm focus:outline-none placeholder-white/20 bg-transparent disabled:opacity-50"
                     />
                     <button
                       type="button"
@@ -962,13 +995,20 @@ export default function Login() {
                   </label>
                   <div style={{
                     borderRadius: '0.75rem',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    border: resetError 
+                      ? '1px solid rgba(239, 68, 68, 0.6)' 
+                      : confirmPasswordFocused
+                        ? `1px solid ${brandColor}`
+                        : '1px solid rgba(255,255,255,0.15)',
+                    boxShadow: confirmPasswordFocused ? `0 0 12px ${brandColor}50` : 'none',
                     padding: '0.75rem 1rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem'
+                    gap: '0.75rem',
+                    transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+                    transform: confirmPasswordFocused ? 'scale(1.02)' : 'scale(1)'
                   }}>
-                    <Lock size={15} className="text-white/30 shrink-0" />
+                    <Lock size={15} className="text-white/30 shrink-0 pointer-events-none" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       required
@@ -980,8 +1020,10 @@ export default function Login() {
                         setConfirmPassword(e.target.value)
                         if (resetError) setResetError('')
                       }}
+                      onFocus={() => setConfirmPasswordFocused(true)}
+                      onBlur={() => setConfirmPasswordFocused(false)}
                       style={{ color: '#fff' }}
-                      className="w-full text-sm focus:outline-none placeholder-white/20 bg-transparent"
+                      className="w-full text-sm focus:outline-none placeholder-white/20 bg-transparent disabled:opacity-50"
                     />
                     <button
                       type="button"
@@ -993,30 +1035,64 @@ export default function Login() {
                   </div>
                 </div>
 
-                {/* Validaciones visuales */}
-                <div className="pt-1 pb-1 space-y-1.5">
-                  <div className={`text-[11px] flex items-center gap-1.5 transition-colors ${
-                    newPassword.length >= 8 ? 'text-emerald-400 font-medium' : 'text-white/40'
-                  }`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${newPassword.length >= 8 ? 'bg-emerald-400' : 'bg-white/30'}`} />
-                    <span>Mínimo 8 caracteres</span>
+                {/* Validaciones visuales con Regex */}
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                  <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">
+                    Requisitos de la contraseña:
                   </div>
-                  <div className={`text-[11px] flex items-center gap-1.5 transition-colors ${
-                    newPassword.length > 0 && newPassword === confirmPassword ? 'text-emerald-400 font-medium' : 'text-white/40'
-                  }`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${newPassword.length > 0 && newPassword === confirmPassword ? 'bg-emerald-400' : 'bg-white/30'}`} />
-                    <span>Las contraseñas coinciden</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
+                    <div className={`flex items-center gap-1.5 transition-colors ${
+                      hasMinLength ? 'text-emerald-400 font-medium' : 'text-white/40'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasMinLength ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                      <span>Mínimo 8 caracteres</span>
+                    </div>
+
+                    <div className={`flex items-center gap-1.5 transition-colors ${
+                      hasUpper ? 'text-emerald-400 font-medium' : 'text-white/40'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasUpper ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                      <span>Una letra mayúscula</span>
+                    </div>
+
+                    <div className={`flex items-center gap-1.5 transition-colors ${
+                      hasLower ? 'text-emerald-400 font-medium' : 'text-white/40'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasLower ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                      <span>Una letra minúscula</span>
+                    </div>
+
+                    <div className={`flex items-center gap-1.5 transition-colors ${
+                      hasNumber ? 'text-emerald-400 font-medium' : 'text-white/40'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasNumber ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                      <span>Al menos un número</span>
+                    </div>
+
+                    <div className={`flex items-center gap-1.5 transition-colors ${
+                      hasSymbol ? 'text-emerald-400 font-medium' : 'text-white/40'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasSymbol ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                      <span>Un símbolo especial</span>
+                    </div>
+
+                    <div className={`flex items-center gap-1.5 transition-colors ${
+                      isMatch ? 'text-emerald-400 font-medium' : 'text-white/40'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isMatch ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                      <span>Contraseñas coinciden</span>
+                    </div>
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={resetLoading || newPassword.length < 8 || newPassword !== confirmPassword}
+                  disabled={resetLoading || !isPasswordValid}
                   style={{ 
-                    background: brandColor, 
+                    background: !isPasswordValid ? '#334155' : brandColor, 
                     color: '#fff',
                     width: '100%',
-                    boxShadow: `0 8px 24px ${brandColor}50`
+                    boxShadow: !isPasswordValid ? 'none' : `0 8px 24px ${brandColor}50`
                   }}
                   className="relative text-sm font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-xl active:scale-[0.98] disabled:opacity-50 mt-4 cursor-pointer flex items-center justify-center gap-2 overflow-hidden"
                 >
