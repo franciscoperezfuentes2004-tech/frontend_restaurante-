@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { 
   Search, UserPlus, Phone, ShieldAlert, Check, X, Edit, Trash2, 
-  Users, User, Lock, UserX, Mail, Eye, EyeOff, Power,
+  Users, User, UserX, Mail, Power,
   ChevronLeft, ChevronRight, RefreshCw, Download, FileText
 } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
@@ -94,8 +94,6 @@ export default function UsersRoles() {
   const [userPhone, setUserPhone] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [userRole, setUserRole] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [formError, setFormError] = useState('')
   const [editingUser, setEditingUser] = useState(null)
   const [showFormModal, setShowFormModal] = useState(false)
@@ -235,22 +233,6 @@ export default function UsersRoles() {
 
   const nameError = (nameTouched || Boolean(formError)) ? nameValidationError : ''
 
-  // Password security parameters (6 mandatory rules in real-time)
-  const passwordRules = useMemo(() => {
-    return [
-      { id: 'lowercase', label: 'Letra minúscula', valid: /(?=.*[a-z])/.test(password) },
-      { id: 'uppercase', label: 'Letra mayúscula', valid: /(?=.*[A-Z])/.test(password) },
-      { id: 'number', label: 'Número', valid: /(?=.*\d)/.test(password) },
-      { id: 'symbol', label: 'Símbolo', valid: /(?=.*[@$!%*?&._-])/.test(password) },
-      { id: 'noSpaces', label: 'Sin espacios', valid: password.length > 0 && /^\S+$/.test(password) },
-      { id: 'minChar', label: 'Mínimo 8 caracteres', valid: password.length >= 8 },
-    ]
-  }, [password])
-
-  const isPasswordValid = useMemo(() => {
-    return passwordRules.every(r => r.valid)
-  }, [passwordRules])
-
   // Helper to extract user display name from multiple possible backend field names
   const getUserDisplayName = (userItem) => {
     if (!userItem) return 'Usuario'
@@ -336,18 +318,6 @@ export default function UsersRoles() {
 
     const { name: cleanName, phone: cleanPhone, email: cleanEmail, role: cleanRole } = validation.data
 
-    // 5. Validación de Contraseña (Únicamente requerida al crear usuario)
-    if (!editingUser) {
-      if (!password.trim()) {
-        setFormError('Ingrese una contraseña para la cuenta.')
-        return
-      }
-      if (!isPasswordValid) {
-        setFormError('La contraseña debe cumplir con todos los parámetros de seguridad obligatorios.')
-        return
-      }
-    }
-
     try {
       setSubmitting(true)
       if (editingUser) {
@@ -362,13 +332,12 @@ export default function UsersRoles() {
         await adminUpdateUser(editingUser.id, payload)
         setToast({ message: `Usuario "${cleanName}" actualizado con éxito.`, type: 'success' })
       } else {
-        // Create User (POST /api/admin/usuarios)
+        // Create User (POST /api/admin/usuarios) - Contraseña autogenerada por backend y enviada por webhook
         const payload = {
           name: cleanName,
           phone: cleanPhone,
           email: cleanEmail,
-          role: cleanRole,
-          password: password
+          role: cleanRole
         }
 
         await adminCreateUser(payload)
@@ -399,8 +368,6 @@ export default function UsersRoles() {
     setUserPhone(userItem.phone || '')
     setUserEmail(userItem.email || '')
     setUserRole(userItem.role || userItem.roleId || creationRoleOptions[0]?.value || 'mesero')
-    setPassword('')
-    setShowPassword(false)
     setFormError('')
     setShowFormModal(true)
   }
@@ -481,8 +448,6 @@ export default function UsersRoles() {
     setUserPhone('')
     setUserEmail('')
     setUserRole(creationRoleOptions[0]?.value || 'mesero')
-    setPassword('')
-    setShowPassword(false)
     setFormError('')
     setEditingUser(null)
     setShowFormModal(false)
@@ -934,7 +899,7 @@ export default function UsersRoles() {
                 <div className="space-y-0.5">
                   <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Aviso de Seguridad</p>
                   <p className="text-xs text-theme-text leading-relaxed">
-                    Las credenciales permitirán al empleado acceder al sistema utilizando su correo electrónico o teléfono y su contraseña.
+                    Las credenciales de acceso (correo/teléfono y una contraseña temporal autogenerada) serán enviadas automáticamente al correo electrónico del empleado.
                   </p>
                 </div>
               </div>
@@ -953,57 +918,6 @@ export default function UsersRoles() {
                 </div>
               </div>
 
-              {/* Contraseña con toggle Eye/EyeOff */}
-              {/* Contraseña con toggle Eye/EyeOff (Solo al crear usuario, eliminada en edición) */}
-              {!editingUser && (
-                <div className="space-y-1.5 text-left">
-                  <label className="block text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">
-                    Contraseña <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-500 pointer-events-none" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full input-subcard bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-brand-500/30 focus:border-brand-500/50 rounded-xl pl-10 pr-10 py-2.5 text-xs text-theme-text placeholder-theme-text-muted outline-none transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer z-10 p-1"
-                      title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    >
-                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
-                  </div>
-
-                  {/* Parámetros de Seguridad Obligatorios */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-[11px] font-medium pt-2">
-                    {passwordRules.map((rule) => {
-                      const isValid = rule.valid
-                      return (
-                        <div key={rule.id} className="flex items-center gap-1.5 transition-colors duration-150">
-                          {isValid ? (
-                            <Check size={13} className="text-green-500 shrink-0 stroke-[2.5]" />
-                          ) : (
-                            <X size={13} className="text-red-500 shrink-0 stroke-[2.5]" />
-                          )}
-                          <span className={isValid ? "text-green-500 font-semibold" : "text-red-500 font-medium"}>
-                            {rule.label}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  <p className="text-[11px] text-theme-text-muted mt-1">
-                    El empleado podrá iniciar sesión con su correo electrónico o número de teléfono.
-                  </p>
-                </div>
-              )}
-
             </div>
 
             <div className="flex items-center gap-3 pt-4 mt-6 pb-2">
@@ -1016,7 +930,7 @@ export default function UsersRoles() {
               </button>
               <button
                 type="submit"
-                disabled={submitting || (!editingUser && !isPasswordValid)}
+                disabled={submitting}
                 className="w-1/2 bg-brand-600 hover:bg-brand-500 text-theme-text rounded-xl py-2.5 text-xs font-bold transition-all shadow-md shadow-brand-600/20 cursor-pointer text-center h-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting ? (
