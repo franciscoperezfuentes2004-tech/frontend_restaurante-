@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, User, ShieldAlert, Eye, EyeOff, Mail, KeyRound, ArrowLeft, RotateCcw, Clock, CheckCircle2 } from 'lucide-react'
 import { login } from '../../services/auth'
-import { forgotPassword, resetPassword } from '../../api/auth'
+import { forgotPassword, verifyCode, resetPassword } from '../../api/auth'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Login() {
@@ -15,7 +15,7 @@ export default function Login() {
   const [error, setError]             = useState('')
   const [loading, setLoading]         = useState(false)
 
-  // Recovery Mode: 'login' | 'forgot_step1' | 'forgot_step2'
+  // Recovery Mode: 'login' | 'forgot_step1' | 'forgot_step2' | 'forgot_step3'
   const [authView, setAuthView]       = useState('login')
   const [forgotEmail, setForgotEmail] = useState('')
   const [websiteUrl, setWebsiteUrl]   = useState('') // Honeypot trap
@@ -25,14 +25,19 @@ export default function Login() {
   const [cooldownMessage, setCooldownMessage] = useState('')
   const [cooldownLocked, setCooldownLocked] = useState(false)
 
-  const [otpCode, setOtpCode]         = useState('')
-  const [newPassword, setNewPassword] = useState('')
+  // Step 2 (Verificar código)
+  const [otpCode, setOtpCode]                 = useState('')
+  const [verifyLoading, setVerifyLoading]     = useState(false)
+  const [verifyError, setVerifyError]         = useState('')
+
+  // Step 3 (Nueva contraseña)
+  const [newPassword, setNewPassword]         = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [resetLoading, setResetLoading] = useState(false)
-  const [resetError, setResetError]   = useState('')
-  const [resetSuccess, setResetSuccess] = useState('')
+  const [resetLoading, setResetLoading]       = useState(false)
+  const [resetError, setResetError]           = useState('')
+  const [resetSuccess, setResetSuccess]       = useState('')
 
   // Timer: 120s (02:00)
   const [otpTimer, setOtpTimer]       = useState(0)
@@ -222,6 +227,7 @@ export default function Login() {
       // Transición Exitosa: Únicamente si Axios retorna 200 OK
       if (response && (response.status === 200 || response.status === 201 || !response.status)) {
         setOtpCode('')
+        setVerifyError('')
         setNewPassword('')
         setConfirmPassword('')
         setResetError('')
@@ -251,6 +257,7 @@ export default function Login() {
   const handleResendOtp = async () => {
     if (otpTimer > 0 || resendingOtp) return
     setResendingOtp(true)
+    setVerifyError('')
     setResetError('')
     setResetSuccess('')
 
@@ -262,21 +269,53 @@ export default function Login() {
     } catch (err) {
       console.error('Error al reenviar código:', err)
       const msg = err.response?.data?.message || 'No se pudo reenviar el código. Intente de nuevo.'
-      setResetError(msg)
+      setVerifyError(msg)
     } finally {
       setResendingOtp(false)
     }
   }
 
-  // Paso 2: Verificar código y restablecer contraseña vía /api/password/reset
+  // Paso 2: Verificar código vía /api/password/verify-code
   const handleForgotStep2Submit = async (e) => {
+    if (e) e.preventDefault()
+    setVerifyError('')
+    setResetError('')
+
+    const cleanCode = otpCode.trim()
+    if (!cleanCode || cleanCode.length !== 6) {
+      setVerifyError('Por favor ingresa el código de 6 dígitos.')
+      return
+    }
+
+    setVerifyLoading(true)
+    try {
+      const cleanEmail = forgotEmail.trim().toLowerCase()
+      await verifyCode(cleanEmail, cleanCode)
+      // Éxito: 200 OK -> Limpiar y avanzar al Paso 3
+      setVerifyError('')
+      setResetError('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setAuthView('forgot_step3')
+    } catch (err) {
+      console.error('Error al verificar código:', err)
+      const msg = err.response?.data?.message || 'Por favor verifique bien el código porque está mal escrito o ha expirado.'
+      setVerifyError(msg)
+    } finally {
+      setVerifyLoading(false)
+    }
+  }
+
+  // Paso 3: Restablecer contraseña vía /api/password/reset
+  const handleForgotStep3Submit = async (e) => {
     if (e) e.preventDefault()
     setResetError('')
     setResetSuccess('')
 
     const cleanCode = otpCode.trim()
-    if (!cleanCode || cleanCode.length !== 6) {
-      setResetError('Por favor ingresa el código de 6 dígitos.')
+    if (!cleanCode) {
+      setResetError('No se encontró el código de verificación. Por favor solicita uno nuevo.')
+      setAuthView('forgot_step2')
       return
     }
 
@@ -292,16 +331,19 @@ export default function Login() {
 
     setResetLoading(true)
     try {
+      const cleanEmail = forgotEmail.trim().toLowerCase()
       const res = await resetPassword({
-        email: forgotEmail.trim().toLowerCase(),
+        email: cleanEmail,
         code: cleanCode,
+        password: newPassword,
+        password_confirmation: confirmPassword,
         new_password: newPassword,
         new_password_confirmation: confirmPassword
       })
 
-      const msg = res.data?.message || 'Contraseña actualizada con éxito. Ya puedes iniciar sesión.'
+      const msg = res.data?.message || 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.'
       setAuthView('login')
-      setEmail(forgotEmail.trim().toLowerCase())
+      setEmail(cleanEmail)
       setPassword('')
       setForgotSuccess(msg)
       setError('')
@@ -730,7 +772,7 @@ export default function Login() {
           )}
 
           {/* ======================================================== */}
-          {/* VISTA PASO 2: VERIFICACIÓN OTP Y NUEVA CONTRASEÑA         */}
+          {/* VISTA PASO 2: VERIFICAR CÓDIGO OTP                       */}
           {/* ======================================================== */}
           {authView === 'forgot_step2' && (
             <div className="space-y-5 animate-fadeIn">
@@ -739,18 +781,12 @@ export default function Login() {
                   Verificar Código
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
-                  Ingresa el código enviado a <span className="text-white font-medium">{forgotEmail}</span> y tu nueva contraseña.
+                  Ingresa el código de 6 dígitos enviado a <span className="text-white font-medium">{forgotEmail}</span>.
                 </p>
               </div>
 
-              {resetError && (
-                <div className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs p-3.5 rounded-xl text-center font-medium">
-                  {resetError}
-                </div>
-              )}
-
               {resetSuccess && (
-                <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs p-3.5 rounded-xl text-center font-medium">
+                <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs p-3.5 rounded-xl text-center font-medium animate-fadeIn">
                   {resetSuccess}
                 </div>
               )}
@@ -791,27 +827,96 @@ export default function Login() {
                   </label>
                   <div style={{
                     borderRadius: '0.75rem',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    border: verifyError ? '1px solid rgba(239, 68, 68, 0.6)' : '1px solid rgba(255,255,255,0.15)',
                     padding: '0.75rem 1rem',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.75rem'
                   }}>
-                    <KeyRound size={15} className="text-white/30 shrink-0" />
+                    <KeyRound size={15} className={verifyError ? "text-red-400 shrink-0" : "text-white/30 shrink-0"} />
                     <input
                       type="text"
                       required
                       maxLength={6}
-                      disabled={resetLoading}
+                      disabled={verifyLoading}
                       placeholder="123456"
                       value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                      onChange={(e) => {
+                        setOtpCode(e.target.value.replace(/[^0-9]/g, ''))
+                        if (verifyError) setVerifyError('')
+                      }}
                       style={{ color: '#fff', letterSpacing: '0.25em' }}
                       className="w-full text-center font-mono font-bold text-base focus:outline-none placeholder-white/20 bg-transparent placeholder:tracking-normal"
                     />
                   </div>
+
+                  {/* Alerta roja debajo del input con mensaje del backend */}
+                  {verifyError && (
+                    <div className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs p-3 rounded-xl text-left font-medium animate-fadeIn mt-2">
+                      {verifyError}
+                    </div>
+                  )}
                 </div>
 
+                <button
+                  type="submit"
+                  disabled={verifyLoading || otpCode.trim().length !== 6}
+                  style={{ 
+                    background: brandColor, 
+                    color: '#fff',
+                    width: '100%',
+                    boxShadow: `0 8px 24px ${brandColor}50`
+                  }}
+                  className="relative text-sm font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-xl active:scale-[0.98] disabled:opacity-50 mt-4 cursor-pointer flex items-center justify-center gap-2 overflow-hidden"
+                >
+                  {verifyLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Verificando...</span>
+                    </>
+                  ) : (
+                    <span>Verificar Código</span>
+                  )}
+                </button>
+              </form>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthView('login')
+                    setVerifyError('')
+                  }}
+                  className="text-xs text-white/50 hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <ArrowLeft size={13} />
+                  Cancelar y volver al login
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* VISTA PASO 3: NUEVA CONTRASEÑA                            */}
+          {/* ======================================================== */}
+          {authView === 'forgot_step3' && (
+            <div className="space-y-5 animate-fadeIn">
+              <div className="text-center">
+                <h2 style={{ color: '#fff', fontWeight: '700', fontSize: '1.1rem', marginBottom: '0.25rem' }}>
+                  Nueva Contraseña
+                </h2>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
+                  Crea una nueva contraseña segura para <span className="text-white font-medium">{forgotEmail}</span>.
+                </p>
+              </div>
+
+              {resetError && (
+                <div className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs p-3.5 rounded-xl text-center font-medium animate-fadeIn">
+                  {resetError}
+                </div>
+              )}
+
+              <form onSubmit={handleForgotStep3Submit} className="space-y-4">
                 {/* Nueva Contraseña */}
                 <div className="space-y-1.5">
                   <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.7rem', letterSpacing: '0.1em', fontWeight: '600' }} className="block uppercase">
@@ -833,7 +938,10 @@ export default function Login() {
                       disabled={resetLoading}
                       placeholder="Mínimo 8 caracteres"
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value)
+                        if (resetError) setResetError('')
+                      }}
                       style={{ color: '#fff' }}
                       className="w-full text-sm focus:outline-none placeholder-white/20 bg-transparent"
                     />
@@ -868,7 +976,10 @@ export default function Login() {
                       disabled={resetLoading}
                       placeholder="Repite la contraseña"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value)
+                        if (resetError) setResetError('')
+                      }}
                       style={{ color: '#fff' }}
                       className="w-full text-sm focus:outline-none placeholder-white/20 bg-transparent"
                     />
@@ -882,9 +993,25 @@ export default function Login() {
                   </div>
                 </div>
 
+                {/* Validaciones visuales */}
+                <div className="pt-1 pb-1 space-y-1.5">
+                  <div className={`text-[11px] flex items-center gap-1.5 transition-colors ${
+                    newPassword.length >= 8 ? 'text-emerald-400 font-medium' : 'text-white/40'
+                  }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${newPassword.length >= 8 ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                    <span>Mínimo 8 caracteres</span>
+                  </div>
+                  <div className={`text-[11px] flex items-center gap-1.5 transition-colors ${
+                    newPassword.length > 0 && newPassword === confirmPassword ? 'text-emerald-400 font-medium' : 'text-white/40'
+                  }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${newPassword.length > 0 && newPassword === confirmPassword ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                    <span>Las contraseñas coinciden</span>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
-                  disabled={resetLoading}
+                  disabled={resetLoading || newPassword.length < 8 || newPassword !== confirmPassword}
                   style={{ 
                     background: brandColor, 
                     color: '#fff',

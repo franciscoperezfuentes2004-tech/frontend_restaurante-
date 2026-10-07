@@ -15,6 +15,10 @@ export const forcePasswordChange = (new_password, new_password_confirmation) =>
 export const forgotPassword = (email) =>
   client.post('/password/forgot', { email })
 
+export const verifyCode = (email, code) =>
+  client.post('/password/verify-code', { email, code })
+
 export const resetPassword = (data) =>
   client.post('/password/reset', data)
+
 
