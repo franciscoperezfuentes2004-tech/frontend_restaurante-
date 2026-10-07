@@ -18,9 +18,12 @@ export default function Login() {
   // Recovery Mode: 'login' | 'forgot_step1' | 'forgot_step2'
   const [authView, setAuthView]       = useState('login')
   const [forgotEmail, setForgotEmail] = useState('')
+  const [websiteUrl, setWebsiteUrl]   = useState('') // Honeypot trap
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotError, setForgotError] = useState('')
   const [forgotSuccess, setForgotSuccess] = useState('')
+  const [cooldownMessage, setCooldownMessage] = useState('')
+  const [cooldownLocked, setCooldownLocked] = useState(false)
 
   const [otpCode, setOtpCode]         = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -190,19 +193,28 @@ export default function Login() {
     if (e) e.preventDefault()
     setForgotError('')
     setForgotSuccess('')
+    setCooldownMessage('')
 
+    // 1. Trampa Honeypot: si un bot llenó website_url, abortar silenciosamente
+    if (websiteUrl && websiteUrl.trim().length > 0) {
+      return
+    }
+
+    // 2. Sanitización de Input: .trim().toLowerCase()
     const cleanEmail = forgotEmail.trim().toLowerCase()
     if (!cleanEmail) {
       setForgotError('Por favor ingresa tu correo electrónico.')
       return
     }
 
-    // Validación Regex de formato de correo
+    // 3. Validación Regex de formato de correo
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(cleanEmail)) {
       setForgotError('Ingresa un formato de correo electrónico válido.')
       return
     }
+
+    if (cooldownLocked) return
 
     setForgotLoading(true)
     try {
@@ -214,13 +226,21 @@ export default function Login() {
         setConfirmPassword('')
         setResetError('')
         setResetSuccess('')
+        setCooldownMessage('')
         setOtpTimer(120) // Inicia en 02:00
         setAuthView('forgot_step2')
       }
     } catch (err) {
       console.error('Error al solicitar recuperación:', err)
-      const msg = err.response?.data?.message || (err.response?.status === 429 ? 'Demasiados intentos. Espera un momento antes de reintentar.' : 'Error al procesar la solicitud. Intente más tarde.')
-      setForgotError(msg)
+      if (err.response?.status === 429) {
+        const msg = err.response?.data?.message || 'Ya enviamos un código a este correo. Por favor, espera 2 minutos antes de solicitar otro.'
+        setCooldownMessage(msg)
+        setCooldownLocked(true)
+        setTimeout(() => setCooldownLocked(false), 10000)
+      } else {
+        const msg = err.response?.data?.message || 'Error al procesar la solicitud. Intente más tarde.'
+        setForgotError(msg)
+      }
       // Bloquea el acceso; el componente NO cambia al "Paso 2"
     } finally {
       setForgotLoading(false)
@@ -235,7 +255,8 @@ export default function Login() {
     setResetSuccess('')
 
     try {
-      await forgotPassword(forgotEmail.trim().toLowerCase())
+      const cleanEmail = forgotEmail.trim().toLowerCase()
+      await forgotPassword(cleanEmail)
       setOtpTimer(120) // Reinicia el timer a 02:00
       setResetSuccess('Se ha enviado un nuevo código de 6 dígitos a tu correo.')
     } catch (err) {
@@ -589,6 +610,13 @@ export default function Login() {
                 </p>
               </div>
 
+              {cooldownMessage && (
+                <div className="bg-amber-500/10 text-amber-300 border border-amber-500/30 text-xs p-3.5 rounded-xl text-center font-medium animate-fadeIn flex items-center justify-center gap-2">
+                  <Clock size={16} className="text-amber-400 shrink-0 animate-pulse" />
+                  <span>{cooldownMessage}</span>
+                </div>
+              )}
+
               {forgotError && (
                 <div className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs p-3.5 rounded-xl text-center font-medium animate-fadeIn">
                   {forgotError}
@@ -596,6 +624,18 @@ export default function Login() {
               )}
 
               <form onSubmit={handleForgotStep1Submit} className="space-y-4">
+                {/* Honeypot field (oculto completamente con CSS, sin etiquetas aria) */}
+                <div style={{ display: 'none', opacity: 0, position: 'absolute', left: '-9999px', pointerEvents: 'none' }} tabIndex={-1}>
+                  <input
+                    type="text"
+                    name="website_url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    autoComplete="off"
+                    tabIndex={-1}
+                  />
+                </div>
+
                 <div className="space-y-1.5">
                   <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.7rem', letterSpacing: '0.1em', fontWeight: '600' }} className="block uppercase">
                     Correo Electrónico
@@ -603,9 +643,11 @@ export default function Login() {
                   <div style={{
                     border: forgotError
                       ? '1px solid rgba(239, 68, 68, 0.6)'
-                      : emailFocused 
-                        ? `1px solid ${brandColor}` 
-                        : '1px solid rgba(255,255,255,0.15)',
+                      : cooldownMessage
+                        ? '1px solid rgba(245, 158, 11, 0.6)'
+                        : emailFocused 
+                          ? `1px solid ${brandColor}` 
+                          : '1px solid rgba(255,255,255,0.15)',
                     boxShadow: emailFocused 
                       ? `0 0 12px ${brandColor}50` 
                       : 'none',
@@ -617,16 +659,17 @@ export default function Login() {
                     transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
                     transform: emailFocused ? 'scale(1.02)' : 'scale(1)'
                   }}>
-                    <Mail size={15} className={forgotError ? "text-red-400 shrink-0" : "text-white/30 shrink-0"} />
+                    <Mail size={15} className={forgotError ? "text-red-400 shrink-0" : cooldownMessage ? "text-amber-400 shrink-0" : "text-white/30 shrink-0"} />
                     <input
                       type="email"
                       required
-                      disabled={forgotLoading}
+                      disabled={forgotLoading || cooldownLocked}
                       placeholder="ejemplo@restaurante.com"
                       value={forgotEmail}
                       onChange={(e) => {
                         setForgotEmail(e.target.value)
                         if (forgotError) setForgotError('')
+                        if (cooldownMessage) setCooldownMessage('')
                       }}
                       onFocus={() => setEmailFocused(true)}
                       onBlur={() => setEmailFocused(false)}
@@ -639,16 +682,21 @@ export default function Login() {
                       {forgotError}
                     </p>
                   )}
+                  {cooldownMessage && (
+                    <p className="text-[11px] text-amber-400 font-medium pl-1 animate-fadeIn">
+                      {cooldownMessage}
+                    </p>
+                  )}
                 </div>
 
                 <button
                   type="submit"
-                  disabled={forgotLoading}
+                  disabled={forgotLoading || cooldownLocked}
                   style={{ 
-                    background: brandColor, 
+                    background: cooldownLocked ? '#475569' : brandColor, 
                     color: '#fff',
                     width: '100%',
-                    boxShadow: `0 8px 24px ${brandColor}50`
+                    boxShadow: cooldownLocked ? 'none' : `0 8px 24px ${brandColor}50`
                   }}
                   className="relative text-sm font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-xl active:scale-[0.98] disabled:opacity-50 mt-4 cursor-pointer flex items-center justify-center gap-2 overflow-hidden"
                 >
@@ -657,6 +705,8 @@ export default function Login() {
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Buscando...</span>
                     </>
+                  ) : cooldownLocked ? (
+                    <span>Espera un momento...</span>
                   ) : (
                     <span>Enviar código de recuperación</span>
                   )}
