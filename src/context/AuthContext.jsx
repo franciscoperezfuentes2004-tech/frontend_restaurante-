@@ -37,11 +37,14 @@ export function AuthProvider({ children }) {
           const cleanUser = normalizeUserData(res.data)
           setUser(cleanUser)
           localStorage.setItem('aurum_user', JSON.stringify(cleanUser))
+          const sucursalId = cleanUser.sucursal_id || cleanUser.branch_id || 1
+          localStorage.setItem('sucursal_activa_id', String(sucursalId))
         })
         .catch(() => {
           setUser(null)
           localStorage.removeItem('auth_token')
           localStorage.removeItem('aurum_user')
+          localStorage.removeItem('sucursal_activa_id')
         })
         .finally(() => setLoading(false))
     } else {
@@ -53,12 +56,16 @@ export function AuthProvider({ children }) {
     if (userData) {
       const cleanUser = normalizeUserData(userData)
       localStorage.setItem('aurum_user', JSON.stringify(cleanUser))
+      const sucursalId = cleanUser.sucursal_id || cleanUser.branch_id || 1
+      localStorage.setItem('sucursal_activa_id', String(sucursalId))
       setUser(cleanUser)
     }
   }
 
   const logoutUser = () => {
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('aurum_user')
+    localStorage.removeItem('sucursal_activa_id')
     setUser(null)
     serviceLogout()
   }

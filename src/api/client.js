@@ -1,9 +1,35 @@
 import axios from 'axios'
 
+export const getActiveSucursalId = () => {
+  try {
+    const explicitId = localStorage.getItem('sucursal_activa_id')
+      || localStorage.getItem('active_sucursal_id')
+      || localStorage.getItem('current_sucursal_id')
+      || localStorage.getItem('sucursal_id')
+      || sessionStorage.getItem('sucursal_activa_id')
+      || sessionStorage.getItem('current_sucursal_id')
+
+    if (explicitId) return explicitId
+
+    const userStr = localStorage.getItem('aurum_user')
+    if (userStr) {
+      const userObj = JSON.parse(userStr)
+      return userObj?.sucursal_id || userObj?.branch_id || null
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
 axios.interceptors.request.use(config => {
     const token = localStorage.getItem('auth_token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    }
+    const sucursalId = getActiveSucursalId();
+    if (sucursalId) {
+        config.headers['X-Sucursal-ID'] = sucursalId;
     }
     return config;
 });
@@ -20,6 +46,12 @@ const client = axios.create({
 client.interceptors.request.use(
   config => {
     try {
+      // Inyectar sucursal activa en header X-Sucursal-ID
+      const sucursalId = getActiveSucursalId()
+      if (sucursalId) {
+        config.headers['X-Sucursal-ID'] = sucursalId
+      }
+
       const isPublicEndpoint = config.skipAuth || config.url?.startsWith('/public') || config.url?.startsWith('public')
       if (isPublicEndpoint) {
         if (config.headers && config.headers.Authorization) {

@@ -32,6 +32,8 @@ export const login = async (email, password) => {
 
   if (user) {
     localStorage.setItem('aurum_user', JSON.stringify(user))
+    const sucursalId = user.sucursal_id || user.branch_id || 1
+    localStorage.setItem('sucursal_activa_id', String(sucursalId))
   }
 
   return response.data
@@ -45,6 +47,7 @@ export const logout = async () => {
   } finally {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('aurum_user')
+    localStorage.removeItem('sucursal_activa_id')
     window.location.href = '/login'
   }
 }
